@@ -1,26 +1,211 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* Brand tokens — light taupe, burgundy & taupe */
+@theme {
+  --color-paper: #e8e0d8; /* light taupe — the site's base colour */
+  --color-cream: #ddd4ca; /* deeper taupe for alternating sections */
+  /* No pure white anywhere: `white` utilities resolve to the same light taupe */
+  --color-white: #e8e0d8;
+  --color-ink: #2f2b29; /* warm charcoal */
+  /* Oxblood burgundy — deep, rich, low-saturation */
+  --color-burgundy: #561226;
+  --color-burgundy-deep: #360a16;
+  --color-burgundy-light: #7a2340;
+  --color-taupe: #a8968a;
+  --color-taupe-dark: #6e6058;
+  --color-taupe-light: #d3c7bc; /* borders/dividers — a step darker than paper */
+  /* Charcoal grey surfaces (FAQ section) */
+  --color-charcoal: #2a2829;
+  --color-charcoal-deep: #1d1b1c;
+  --color-charcoal-soft: #383536;
+  /* Burgundy lifted for text/strokes on charcoal, where #561226 is too dark */
+  --color-rose: #c4798b;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* SF Pro on Apple devices (system font — it can't be web-loaded legally);
+     Inter, its closest open equivalent, everywhere else. */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", var(--font-inter), "Helvetica Neue", Arial, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--font-inter), "Helvetica Neue", Arial, sans-serif;
+  /* Wordmark font: always Montserrat, even on Apple devices */
+  --font-brand: var(--font-montserrat), "Montserrat", "Helvetica Neue", Arial, sans-serif;
+  /* Poster headlines (Process section) */
+  --font-condensed: var(--font-anton), "Anton", Impact, "Arial Narrow", sans-serif;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --animate-marquee: marquee 60s linear infinite;
+  --animate-marquee-reverse: marquee-reverse 60s linear infinite;
+  --animate-spin-slow: spin 30s linear infinite;
+  --animate-spin-slower: spin 60s linear infinite reverse;
+  --animate-pulse-line: pulse-line 3.5s ease-in-out infinite;
+  --animate-scroll-cue: scroll-cue 1.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes marquee-reverse {
+    from { transform: translateX(-50%); }
+    to { transform: translateX(0); }
+  }
+  @keyframes scroll-cue {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(200%); }
+  }
+  @keyframes pulse-line {
+    0% { left: -10%; opacity: 0; }
+    15% { opacity: 1; }
+    85% { opacity: 1; }
+    100% { left: 100%; opacity: 0; }
   }
 }
 
-body {
+:root {
+  --background: #e8e0d8;
+  --foreground: #2f2b29;
+}
+
+html {
+  scroll-behavior: smooth;
   background: var(--background);
+}
+
+body {
+  text-rendering: optimizeLegibility;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--background);
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--color-burgundy);
+  color: var(--color-paper);
+}
+
+/* Glow utilities (@utility so hover:/group-hover: variants work) */
+@utility glow-burgundy {
+  box-shadow: 0 8px 30px -6px rgba(86, 18, 38, 0.35);
+}
+@utility glow-taupe {
+  box-shadow: 0 8px 30px -6px rgba(168, 150, 138, 0.5);
+}
+
+/* Accent words inside headlines: wine fading to rose-taupe */
+@utility text-shine {
+  background: linear-gradient(100deg, #7a2340 0%, #a8606f 55%, #b8978a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* text-shine for dark surfaces: rose fading to taupe */
+@utility text-shine-dark {
+  background: linear-gradient(100deg, #c4798b 0%, #b98a95 50%, #a8968a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Outlined poster type — transparent fill, burgundy stroke */
+@utility text-outline {
+  color: transparent;
+  -webkit-text-stroke: 2px var(--color-burgundy);
+}
+
+/* Layered burgundy for large panels — a lit corner fading to oxblood */
+@utility bg-burgundy-rich {
+  background:
+    radial-gradient(90% 120% at 0% 0%, rgba(122, 35, 64, 0.9) 0%, transparent 55%),
+    radial-gradient(70% 90% at 100% 100%, rgba(30, 5, 12, 0.85) 0%, transparent 60%),
+    #561226;
+}
+
+/* Faint paper grain over the whole page */
+.grain::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Cursor-following spotlight for cards (set --x / --y from JS); pair with `isolate` */
+.spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s;
+  background: radial-gradient(
+    420px circle at var(--x, 50%) var(--y, 50%),
+    rgba(86, 18, 38, 0.06),
+    transparent 45%
+  );
+}
+.spotlight:hover::before {
+  opacity: 1;
+}
+
+/* Fade edges of horizontally scrolling rows */
+.mask-x {
+  mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+}
+
+/* Hero entrance — CSS only, runs without JavaScript */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+    filter: blur(6px);
+  }
+}
+.rise {
+  animation: rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--delay, 0s);
+}
+
+/* Scroll reveal (see components/Reveal.tsx). Only hidden when JS is running
+   (`js` class); `reveal-all` is the safety net if React never hydrates. */
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(24px);
+  filter: blur(6px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--delay, 0s);
+}
+.js [data-reveal].is-visible,
+.reveal-all [data-reveal] {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .js [data-reveal] {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* Scrollable without a visible scrollbar (tablet screen in the FAQ) */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }

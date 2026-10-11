@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="2 2 44 44">
+  <!-- Favicon: the bare mark (paths from src/lib/logo.ts), no background.
+       Burgundy on light browser chrome, light taupe on dark. -->
+  <style>
+    g { fill: #561226; stroke: #561226; }
+    @media (prefers-color-scheme: dark) { g { fill: #E8E0D8; stroke: #E8E0D8; } }
+  </style>
+  <g>
+    <path d="M42.47 35.53A20.1 20.1 0 1 1 42.47 12.47" fill="none" stroke-width="3.3"/>
+    <path d="M25.71 13.3A10.7 10.7 0 1 0 33.81 31.23A10.44 10.44 0 0 1 25.71 13.3Z" stroke="none"/>
+    <path d="M30.8 19.72Q31.15 21.97 33.4 22.32Q31.15 22.67 30.8 24.92Q30.45 22.67 28.2 22.32Q30.45 21.97 30.8 19.72Z" stroke="none"/>
+  </g>
+</svg>
