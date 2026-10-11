@@ -2,9 +2,10 @@
 
 import { useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, Check, ChevronDown, LoaderCircle } from "lucide-react";
+import { ArrowRight, Check, LoaderCircle } from "lucide-react";
 import { enquiryTopics } from "@/lib/data";
 import { submitEnquiry } from "@/lib/enquiry";
+import { TopicSelect } from "./TopicSelect";
 
 const field =
   "w-full rounded-2xl border border-taupe-light bg-cream px-5 py-3.5 text-ink outline-none transition placeholder:text-taupe focus:border-burgundy/50 focus:bg-paper focus:ring-4 focus:ring-burgundy/10";
@@ -46,9 +47,12 @@ export function EnquiryForm() {
   }
 
   return (
-    <div className="relative overflow-hidden rounded-[2rem] border border-taupe-light bg-paper p-6 shadow-[0_30px_80px_-30px_rgba(54,10,22,0.25)] md:p-10">
-      <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-burgundy/10 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-taupe/10 blur-3xl" />
+    <div className="relative rounded-[2rem] border border-taupe-light bg-paper p-6 shadow-[0_30px_80px_-30px_rgba(54,10,22,0.25)] md:p-10">
+      {/* Glows clipped on their own layer, so the topic dropdown can hang past the card */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]">
+        <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-burgundy/10 blur-3xl" />
+        <div className="absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-taupe/10 blur-3xl" />
+      </div>
 
       <AnimatePresence mode="wait" initial={false}>
         {status === "sent" ? (
@@ -118,19 +122,7 @@ export function EnquiryForm() {
               <label htmlFor="topic" className={label}>
                 What is this about?
               </label>
-              <div className="relative">
-                <select id="topic" name="topic" defaultValue="" className={`${field} appearance-none pr-12`}>
-                  <option value="" disabled className="bg-paper">
-                    Please choose…
-                  </option>
-                  {enquiryTopics.map((t) => (
-                    <option key={t} value={t} className="bg-paper">
-                      {t}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/65" />
-              </div>
+              <TopicSelect id="topic" name="topic" options={enquiryTopics} placeholder="Please choose…" className={field} />
             </div>
             <div className="sm:col-span-2">
               <label htmlFor="message" className={label}>

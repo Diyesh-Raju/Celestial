@@ -280,7 +280,7 @@ export default function ContactPage() {
         <NextSteps />
         <DiscoverMore />
       </main>
-      <Footer />
+      <Footer bleed />
     </div>
   );
 }

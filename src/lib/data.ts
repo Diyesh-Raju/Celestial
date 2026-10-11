@@ -134,34 +134,39 @@ export const services = [
   },
 ] as const;
 
+// `bg` / `ink`: the slide colour and the giant background name in the Work slider
 export const portfolio = [
   {
     name: "Obsidian Blade",
     url: "https://obsidian-blade.vercel.app/",
     image: "/work/obsidian.jpg",
     tag: "Custom Web App",
-    gradient: "from-taupe/20 via-taupe/10 to-transparent",
+    bg: "#ddd4ca",
+    ink: "#561226",
   },
   {
     name: "Nocturne Food & Beverage",
     url: "https://nocturnefoodbeverage.vercel.app/",
     image: "/work/nocturne.jpg",
     tag: "E-Commerce / Hospitality",
-    gradient: "from-taupe/30 via-taupe/5 to-transparent",
+    bg: "#561226",
+    ink: "#e8e0d8",
   },
   {
     name: "Sage Thread Boutique",
     url: "https://sage-thread-botique-website.vercel.app/",
     image: "/work/sage.jpg",
     tag: "Retail / Fashion",
-    gradient: "from-taupe/25 via-taupe/5 to-transparent",
+    bg: "#a8968a",
+    ink: "#2f2b29",
   },
   {
     name: "Vijaya Enterprises",
     url: "https://vijaya.in",
     image: "/work/vijaya.jpg",
     tag: "Real Estate Enterprise Group",
-    gradient: "from-burgundy/25 via-burgundy/5 to-transparent",
+    bg: "#2a2829",
+    ink: "#c4798b",
   },
 ];
 

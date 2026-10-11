@@ -12,12 +12,29 @@ const footerLinks = [
   { href: "/contact", label: "Contact Us" },
 ];
 
-export function Footer() {
+/* `bleed` (contact page): the taupe page bleeds down into the burgundy footer */
+export function Footer({ bleed = false }: { bleed?: boolean }) {
   return (
-    <footer className="relative overflow-hidden bg-burgundy-deep px-6 pt-20 text-white">
-      {/* Orbit rings + taupe glow */}
-      <div className="pointer-events-none absolute -right-64 -top-64 h-[640px] w-[640px] rounded-full border border-white/20" />
-      <div className="pointer-events-none absolute -right-40 -top-40 h-[400px] w-[400px] rounded-full border border-dashed border-white/30" />
+    <footer
+      className={`relative overflow-hidden bg-burgundy-deep px-6 text-white ${bleed ? "pt-[19rem] md:pt-[25rem]" : "pt-20"}`}
+    >
+      {bleed && (
+        // Smoothstep-eased stops from paper (#e8e0d8) to burgundy-deep (#360a16), so neither end has a hard edge
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-56 md:h-80"
+          style={{
+            background:
+              "linear-gradient(to bottom, #e8e0d8 0%, #ddd3cc 15%, #c2b2ae 30%, #9c8586 45%, #75555a 60%, #522b34 75%, #3b101b 90%, #360a16 100%)",
+          }}
+        />
+      )}
+      {/* Orbit rings + taupe glow. With `bleed` the rings start below the fade and
+          run up into it, rather than being cut off at the footer's top edge */}
+      <div className={`pointer-events-none absolute inset-x-0 bottom-0 ${bleed ? "top-56 md:top-80" : "top-0"}`}>
+        <div className="absolute -right-64 -top-64 h-[640px] w-[640px] rounded-full border border-white/20" />
+        <div className="absolute -right-40 -top-40 h-[400px] w-[400px] rounded-full border border-dashed border-white/30" />
+      </div>
       {/* Same rings, mirrored into the bottom-left corner */}
       <div className="pointer-events-none absolute -bottom-64 -left-64 h-[640px] w-[640px] rounded-full border border-white/20" />
       <div className="pointer-events-none absolute -bottom-40 -left-40 h-[400px] w-[400px] rounded-full border border-dashed border-white/30" />
