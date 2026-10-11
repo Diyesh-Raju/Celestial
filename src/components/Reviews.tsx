@@ -8,25 +8,25 @@ const reviews = [
   {
     quote:
       "Our old site looked dated and never brought in a single enquiry. Celestial rebuilt it from scratch, and the leads started landing in our CRM the same week.",
-    name: "Rajan M.",
+    name: "Karthik N.",
     role: "Restaurant Owner, Bengaluru",
   },
   {
     quote:
       "We were running ads, a website and a spreadsheet that never talked to each other. Now it's one system, and I can see exactly which campaign brought in which patient.",
-    name: "Dr. Arvind S.",
+    name: "Dr. Meera P.",
     role: "Dental Practice, Pune",
   },
   {
     quote:
       "The animations feel effortless and the site loads instantly. Within two months we were ranking on the first page for the searches that actually matter to us.",
-    name: "Sneha K.",
+    name: "Ananya R.",
     role: "Clinic Owner, Chennai",
   },
   {
     quote:
       "They didn't just hand over a website. They replaced the tools slowing us down and stayed on to keep improving things after launch.",
-    name: "Mihir T.",
+    name: "Vikram D.",
     role: "Founder, D2C Startup",
   },
 ];

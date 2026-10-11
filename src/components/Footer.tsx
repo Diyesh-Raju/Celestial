@@ -7,6 +7,7 @@ const footerLinks = [
   { href: "/", label: "Home" },
   { href: "/#services", label: "Services" },
   { href: "/#process", label: "Process" },
+  { href: "/#faq", label: "FAQ" },
   { href: "/portfolio", label: "Selected Work" },
   { href: "/contact", label: "Contact Us" },
 ];
@@ -15,11 +16,24 @@ export function Footer() {
   return (
     <footer className="relative overflow-hidden bg-burgundy-deep px-6 pt-20 text-white">
       {/* Orbit rings + taupe glow */}
-      <div className="pointer-events-none absolute -right-64 -top-64 h-[640px] w-[640px] rounded-full border border-white/[0.07]" />
-      <div className="pointer-events-none absolute -right-40 -top-40 h-[400px] w-[400px] rounded-full border border-dashed border-white/10" />
+      <div className="pointer-events-none absolute -right-64 -top-64 h-[640px] w-[640px] rounded-full border border-white/20" />
+      <div className="pointer-events-none absolute -right-40 -top-40 h-[400px] w-[400px] rounded-full border border-dashed border-white/30" />
+      {/* Same rings, mirrored into the bottom-left corner */}
+      <div className="pointer-events-none absolute -bottom-64 -left-64 h-[640px] w-[640px] rounded-full border border-white/20" />
+      <div className="pointer-events-none absolute -bottom-40 -left-40 h-[400px] w-[400px] rounded-full border border-dashed border-white/30" />
       <div className="pointer-events-none absolute -bottom-64 -left-40 h-[500px] w-[700px] rounded-full bg-taupe/20 blur-[120px]" />
 
-      <div className="relative mx-auto grid max-w-6xl gap-14 md:grid-cols-[1fr_1.3fr_1fr]">
+      {/* Oversized name, only a shade lighter than the background */}
+      <p
+        aria-hidden
+        className="relative select-none text-center font-display text-[12.5vw] font-black uppercase leading-[0.86] tracking-[-0.03em] text-taupe/[0.09] md:text-[11vw] xl:text-[9.5rem]"
+      >
+        Celestial
+        <br />
+        Corporation
+      </p>
+
+      <div className="relative mx-auto mt-16 grid max-w-6xl gap-14 md:mt-24 md:grid-cols-[1fr_1.3fr_1fr]">
         <div className="flex flex-col gap-6">
           <Logo light />
           <p className="max-w-xs text-sm leading-relaxed text-white/60">
@@ -28,7 +42,7 @@ export function Footer() {
           <SocialIcons light />
         </div>
 
-        <nav className="flex flex-col gap-1">
+        <nav className="flex flex-col gap-1 md:pl-16 lg:pl-24">
           {footerLinks.map((l) => (
             <Link
               key={l.href}

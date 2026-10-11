@@ -14,6 +14,7 @@ export const metadata: Metadata = {
 };
 
 const whatsappHref = `https://wa.me/${CONTACT.whatsapp}`;
+const digits = (n: string) => n.replace(/\D/g, "");
 
 const channels = [
   {
@@ -21,7 +22,7 @@ const channels = [
     label: "Call us",
     value: CONTACT.phone,
     href: `tel:${CONTACT.phone.replace(/\s/g, "")}`,
-    numbers: CONTACT.phones,
+    numbers: CONTACT.phones.map((n) => ({ text: n, href: `tel:+${digits(n)}` })),
     note: `${CONTACT.hours[0].days}, ${CONTACT.hours[0].time}`,
     glow: "bg-burgundy/20",
     tint: "text-burgundy",
@@ -31,6 +32,7 @@ const channels = [
     label: "WhatsApp",
     value: CONTACT.phone,
     href: whatsappHref,
+    numbers: CONTACT.phones.map((n) => ({ text: n, href: `https://wa.me/${digits(n)}` })),
     note: "Message us with your requirement",
     glow: "bg-taupe/40",
     tint: "text-taupe-dark",
@@ -113,13 +115,19 @@ function ChannelCards() {
           return (
             <Reveal key={c.label} delay={i * 0.08}>
               {c.numbers ? (
-                // Several numbers: each is its own tel: link, so the card itself can't be one
+                // Several numbers: each is its own link, so the card itself can't be one
                 <div className={cardClass}>
                   {header}
                   <div className="relative mt-8 flex flex-col gap-1">
                     {c.numbers.map((n) => (
-                      <a key={n} href={`tel:${n.replace(/\s/g, "")}`} className="break-words text-xl font-medium text-ink transition hover:text-burgundy lg:text-[1.35rem]">
-                        {n}
+                      <a
+                        key={n.text}
+                        href={n.href}
+                        target={n.href.startsWith("http") ? "_blank" : undefined}
+                        rel="noreferrer"
+                        className="break-words text-xl font-medium text-ink transition hover:text-burgundy lg:text-[1.35rem]"
+                      >
+                        {n.text}
                       </a>
                     ))}
                   </div>
