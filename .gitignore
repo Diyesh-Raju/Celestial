@@ -40,3 +40,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .gstack/
+
+# template/prototype folders kept locally only
+/code/
+/files/
+/fluid-shader-main/
