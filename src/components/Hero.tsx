@@ -269,13 +269,27 @@ export function Hero() {
 
       <div className="pointer-events-none relative z-[1] flex h-full flex-col px-5 pb-8 pt-28 @container md:px-0 md:pb-10 md:pt-32">
         {/* The rows above and below line up with the navbar; the headline runs wider. */}
-        <div className="rise mx-auto flex w-full max-w-6xl items-center justify-between gap-4 md:px-8">
+        <div className="rise mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 md:px-8">
           <span className="inline-flex h-8 items-center rounded-full border border-paper/20 bg-paper/[0.06] px-4 text-[12px] font-medium uppercase tracking-[0.14em] text-paper/80 backdrop-blur-md">
             Websites · CRMs · Ads
           </span>
-          <span className="hidden text-[11px] uppercase tracking-[0.22em] text-paper/45 md:block">
-            Click to ignite
-          </span>
+          <div className="ml-auto flex items-center gap-5">
+            <span className="hidden text-[11px] uppercase tracking-[0.22em] text-paper/45 md:block">
+              Click to ignite
+            </span>
+            <a
+              href={CONTACT.walkthrough}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border-sweep group/cal pointer-events-auto inline-flex rounded-full p-px shadow-[0_0_32px_-8px_rgba(196,121,139,0.6)] transition hover:-translate-y-0.5 hover:shadow-[0_0_40px_-4px_rgba(196,121,139,0.85)] active:scale-[0.97]"
+            >
+              <span className="flex h-10 items-center gap-2 rounded-full bg-[linear-gradient(135deg,#4A0F22,#22060E)] pl-3.5 pr-4 text-[14px] font-semibold text-paper">
+                <CalendarDays className="h-4 w-4 text-rose" />
+                Book a walkthrough
+                <ArrowUpRight className="h-4 w-4 text-paper/70 transition-transform group-hover/cal:-translate-y-0.5 group-hover/cal:translate-x-0.5" />
+              </span>
+            </a>
+          </div>
         </div>
 
         {/* Two halves of the headline either side of the globe: stacked above
@@ -316,43 +330,20 @@ export function Hero() {
             High-performance websites, custom CRMs and ad systems that work as one engine — built to turn attention
             into revenue.
           </p>
-          <div className="rise pointer-events-auto flex flex-col items-start gap-3 [--delay:200ms] md:items-end">
+          <div className="rise pointer-events-auto flex flex-wrap gap-3 [--delay:200ms]">
             <a
-              href={CONTACT.walkthrough}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="border-sweep group/cal inline-flex rounded-full p-px shadow-[0_0_40px_-10px_rgba(196,121,139,0.6)] transition hover:-translate-y-0.5 hover:shadow-[0_0_48px_-6px_rgba(196,121,139,0.85)] active:scale-[0.97]"
+              href="/contact"
+              className="group/btn inline-flex h-12 items-center gap-2 rounded-full bg-paper px-6 text-[15px] font-semibold text-burgundy transition hover:bg-cream active:scale-[0.97]"
             >
-              <span className="flex h-14 items-center gap-3 rounded-full bg-[linear-gradient(135deg,#4A0F22,#22060E)] pl-2 pr-5">
-                <span className="relative grid h-10 w-10 place-items-center rounded-full bg-paper/10 text-rose transition group-hover/cal:bg-paper/15">
-                  <CalendarDays className="h-[18px] w-[18px]" />
-                  <span className="absolute right-0.5 top-0.5 flex h-2.5 w-2.5">
-                    <span className="absolute inset-0 animate-ping rounded-full bg-rose opacity-70" />
-                    <span className="relative h-2.5 w-2.5 rounded-full border-2 border-[#3A0B19] bg-rose" />
-                  </span>
-                </span>
-                <span className="flex flex-col text-left leading-tight">
-                  <span className="text-[15px] font-semibold text-paper">Book a live walkthrough</span>
-                  <span className="text-[12px] text-paper/55">Meet the team · pick a time that suits you</span>
-                </span>
-                <ArrowUpRight className="ml-1 h-4 w-4 text-paper/70 transition-transform group-hover/cal:-translate-y-0.5 group-hover/cal:translate-x-0.5 group-hover/cal:text-paper" />
-              </span>
+              Start a project
+              <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-0.5" />
             </a>
-            <div className="flex flex-wrap gap-3">
-              <a
-                href="/contact"
-                className="group/btn inline-flex h-12 items-center gap-2 rounded-full bg-paper px-6 text-[15px] font-semibold text-burgundy transition hover:bg-cream active:scale-[0.97]"
-              >
-                Start a project
-                <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-0.5" />
-              </a>
-              <a
-                href="/portfolio"
-                className="inline-flex h-12 items-center rounded-full border border-paper/25 bg-paper/[0.07] px-6 text-[15px] font-semibold text-paper backdrop-blur-md transition hover:border-paper/40 hover:bg-paper/[0.13] active:scale-[0.97]"
-              >
-                View selected work
-              </a>
-            </div>
+            <a
+              href="/portfolio"
+              className="inline-flex h-12 items-center rounded-full border border-paper/25 bg-paper/[0.07] px-6 text-[15px] font-semibold text-paper backdrop-blur-md transition hover:border-paper/40 hover:bg-paper/[0.13] active:scale-[0.97]"
+            >
+              View selected work
+            </a>
           </div>
         </div>
       </div>
