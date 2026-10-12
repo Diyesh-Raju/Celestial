@@ -165,6 +165,36 @@ body {
   animation-delay: var(--delay, 0s);
 }
 
+/* Walkthrough booking pill in the hero: a light sweeping round its 1px border.
+   The spinning square sits behind the pill's face, so only the rim shows it. */
+@keyframes border-sweep {
+  to { transform: translate(-50%, -50%) rotate(1turn); }
+}
+.border-sweep {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.border-sweep::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: -1;
+  width: 150%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  background: conic-gradient(
+    from 0deg,
+    rgba(232, 224, 216, 0.14) 0deg,
+    rgba(232, 224, 216, 0.14) 220deg,
+    #c4798b 290deg,
+    #e8e0d8 330deg,
+    rgba(232, 224, 216, 0.14) 360deg
+  );
+  animation: border-sweep 4s linear infinite;
+}
+
 /* Scroll reveal (see components/Reveal.tsx). Only hidden when JS is running
    (`js` class); `reveal-all` is the safety net if React never hydrates. */
 .js [data-reveal] {

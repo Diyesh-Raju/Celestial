@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowDown, ArrowRight } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUpRight, CalendarDays } from "lucide-react";
+import { CONTACT } from "@/lib/data";
 import { createMonolith, type MonolithApi } from "@/components/hero/monolithScene";
 
 // The hero: the orbit globe ringed by stars, hanging between the two halves
@@ -315,20 +316,43 @@ export function Hero() {
             High-performance websites, custom CRMs and ad systems that work as one engine — built to turn attention
             into revenue.
           </p>
-          <div className="rise pointer-events-auto flex flex-wrap gap-3 [--delay:200ms]">
+          <div className="rise pointer-events-auto flex flex-col items-start gap-3 [--delay:200ms] md:items-end">
             <a
-              href="/contact"
-              className="group/btn inline-flex h-12 items-center gap-2 rounded-full bg-paper px-6 text-[15px] font-semibold text-burgundy transition hover:bg-cream active:scale-[0.97]"
+              href={CONTACT.walkthrough}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border-sweep group/cal inline-flex rounded-full p-px shadow-[0_0_40px_-10px_rgba(196,121,139,0.6)] transition hover:-translate-y-0.5 hover:shadow-[0_0_48px_-6px_rgba(196,121,139,0.85)] active:scale-[0.97]"
             >
-              Start a project
-              <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-0.5" />
+              <span className="flex h-14 items-center gap-3 rounded-full bg-[linear-gradient(135deg,#4A0F22,#22060E)] pl-2 pr-5">
+                <span className="relative grid h-10 w-10 place-items-center rounded-full bg-paper/10 text-rose transition group-hover/cal:bg-paper/15">
+                  <CalendarDays className="h-[18px] w-[18px]" />
+                  <span className="absolute right-0.5 top-0.5 flex h-2.5 w-2.5">
+                    <span className="absolute inset-0 animate-ping rounded-full bg-rose opacity-70" />
+                    <span className="relative h-2.5 w-2.5 rounded-full border-2 border-[#3A0B19] bg-rose" />
+                  </span>
+                </span>
+                <span className="flex flex-col text-left leading-tight">
+                  <span className="text-[15px] font-semibold text-paper">Book a live walkthrough</span>
+                  <span className="text-[12px] text-paper/55">Meet the team · pick a time that suits you</span>
+                </span>
+                <ArrowUpRight className="ml-1 h-4 w-4 text-paper/70 transition-transform group-hover/cal:-translate-y-0.5 group-hover/cal:translate-x-0.5 group-hover/cal:text-paper" />
+              </span>
             </a>
-            <a
-              href="/portfolio"
-              className="inline-flex h-12 items-center rounded-full border border-paper/25 bg-paper/[0.07] px-6 text-[15px] font-semibold text-paper backdrop-blur-md transition hover:border-paper/40 hover:bg-paper/[0.13] active:scale-[0.97]"
-            >
-              View selected work
-            </a>
+            <div className="flex flex-wrap gap-3">
+              <a
+                href="/contact"
+                className="group/btn inline-flex h-12 items-center gap-2 rounded-full bg-paper px-6 text-[15px] font-semibold text-burgundy transition hover:bg-cream active:scale-[0.97]"
+              >
+                Start a project
+                <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-0.5" />
+              </a>
+              <a
+                href="/portfolio"
+                className="inline-flex h-12 items-center rounded-full border border-paper/25 bg-paper/[0.07] px-6 text-[15px] font-semibold text-paper backdrop-blur-md transition hover:border-paper/40 hover:bg-paper/[0.13] active:scale-[0.97]"
+              >
+                View selected work
+              </a>
+            </div>
           </div>
         </div>
       </div>
