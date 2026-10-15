@@ -25,7 +25,7 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: "Celestial Corporation — Websites, CRMs & Growth Ads",
+  title: "Celestial Co.",
   description:
     "Celestial Corporation builds high-performance websites, custom CRMs and Meta & Google ad systems that turn scattered work into one connected growth engine.",
 };

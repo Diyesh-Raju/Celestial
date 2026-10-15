@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link, { type LinkProps } from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
+import { ArrowUpRight, CalendarDays } from "lucide-react";
 import { CONTACT, navLinks } from "@/lib/data";
 import { LOGO_C, LOGO_C_STROKE, LOGO_MOON, LOGO_STAR, LOGO_VIEWBOX } from "@/lib/logo";
 
@@ -64,12 +65,6 @@ function MenuButton({ onClick }: { onClick: () => void }) {
 
 const menuLinks = [...navLinks, { href: "/contact", label: "Contact" }];
 
-const socials = [
-  { href: CONTACT.socials.instagram, label: "Instagram" },
-  { href: CONTACT.socials.linkedin, label: "LinkedIn" },
-  { href: CONTACT.socials.x, label: "X (Twitter)" },
-];
-
 /* Jumps (no smooth scroll) to a "#hash" target, or to the top of the page */
 function jumpTo(hash: string) {
   const target = hash ? document.getElementById(decodeURIComponent(hash.slice(1))) : null;
@@ -129,35 +124,31 @@ function MenuOverlay({ onClose, onNavigate }: { onClose: () => void; onNavigate:
             </motion.div>
           ))}
         </nav>
-
-        <motion.ul
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7, duration: 0.5 }}
-          className="mt-8 flex flex-col gap-1.5 text-sm"
-        >
-          {socials.map((s) => (
-            <li key={s.label}>
-              <a href={s.href} target="_blank" rel="noreferrer" className="text-burgundy/70 transition hover:text-burgundy">
-                {s.label}
-              </a>
-            </li>
-          ))}
-        </motion.ul>
       </div>
 
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.7, duration: 0.5 }}
-        className="grid grid-cols-2 gap-2 text-sm md:grid-cols-[1fr_1fr_auto]"
+        className="grid grid-cols-[1fr_auto] items-center gap-2 text-sm md:grid-cols-[1fr_1fr_auto]"
       >
         <span>© {new Date().getFullYear()} Celestial Corporation</span>
         <a href={`mailto:${CONTACT.email}`} className="hidden transition hover:text-burgundy-deep md:block">
           {CONTACT.email}
         </a>
-        <Link href="/contact" onNavigate={onNavigate("/contact")} className="justify-self-end transition hover:text-burgundy-deep">
-          Start a project →
+        <Link
+          href="/contact"
+          onNavigate={onNavigate("/contact")}
+          className="group/book relative inline-flex h-12 items-center gap-2.5 justify-self-end overflow-hidden rounded-full border border-paper/15 bg-gradient-to-b from-burgundy to-burgundy-deep px-4 text-[15px] font-semibold text-paper shadow-[0_12px_30px_-12px_rgba(20,3,8,0.7)] transition hover:border-paper/30 active:scale-[0.97] md:h-14 md:gap-3 md:px-6 md:text-base"
+        >
+          <CalendarDays aria-hidden className="h-5 w-5 text-[#e7a9b8]" />
+          Book a walkthrough
+          <ArrowUpRight
+            aria-hidden
+            className="h-5 w-5 text-paper/70 transition-transform group-hover/book:-translate-y-0.5 group-hover/book:translate-x-0.5"
+          />
+          {/* Soft light catching the bottom edge */}
+          <span aria-hidden className="absolute inset-x-1/4 bottom-0 h-px bg-gradient-to-r from-transparent via-[#e7a9b8] to-transparent" />
         </Link>
       </motion.div>
     </motion.div>

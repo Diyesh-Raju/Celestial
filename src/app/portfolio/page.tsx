@@ -4,7 +4,7 @@ import { Reveal } from "@/components/Reveal";
 import { Work } from "@/components/Work";
 
 export const metadata: Metadata = {
-  title: "Portfolio — Celestial Corporation",
+  title: "Portfolio — Celestial Co.",
   description:
     "Recent client builds from Celestial Corporation: custom websites engineered for minimal aesthetic and maximal business outcomes.",
 };
