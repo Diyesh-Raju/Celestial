@@ -19,12 +19,17 @@ const host = (url: string) => url.replace(/^https:\/\//, "").replace(/\/$/, "");
 /* `blend` (home page): fades in from the dark reviews section above and out into
    the dark promise photo below, so the light block sits between them seamlessly */
 export function Work({ blend = false }: { blend?: boolean }) {
-  const [current, setCurrent] = useState(0);
+  // `previous` stays visible under the incoming slide while it wipes in (or out)
+  const [{ current, previous }, setSlides] = useState({ current: 0, previous: 0 });
   const touchX = useRef<number | null>(null);
   const total = portfolio.length;
   const item = portfolio[current];
 
-  const go = (i: number) => setCurrent(Math.max(0, Math.min(total - 1, i)));
+  const go = (i: number) =>
+    setSlides((s) => {
+      const next = Math.max(0, Math.min(total - 1, i));
+      return next === s.current ? s : { current: next, previous: s.current };
+    });
 
   return (
     <section
@@ -102,17 +107,19 @@ export function Work({ blend = false }: { blend?: boolean }) {
                 transition: `clip-path 1s ${EASE} 0.3s`,
               }}
             >
+              {/* One name per half: at this size a single name is always wider than the
+                  frame, which is all the seamless -50% loop needs. Hidden slides hold still. */}
               <div
                 className="flex w-max animate-marquee whitespace-nowrap font-display text-[clamp(5rem,17vw,15rem)] font-medium uppercase leading-none tracking-[-0.03em] opacity-90"
-                style={{ color: p.ink, animationDuration: "45s" }}
+                style={{
+                  color: p.ink,
+                  animationDuration: "15s",
+                  animationPlayState: i === current || i === previous ? "running" : "paused",
+                }}
               >
                 {[0, 1].map((half) => (
-                  <span key={half} className="flex">
-                    {[0, 1, 2].map((n) => (
-                      <span key={n} className="px-[0.3em]">
-                        {p.name}
-                      </span>
-                    ))}
+                  <span key={half} className="px-[0.3em]">
+                    {p.name}
                   </span>
                 ))}
               </div>

@@ -2,7 +2,6 @@
 export const CONTACT = {
   email: "celestial.team.011@gmail.com",
   phones: ["+91 8310818878", "+91 8618429404", "+91 6360416204"], // all on calls and WhatsApp
-  phone: "+91 8310818878", // primary number
   whatsapp: "918310818878", // primary WhatsApp: country code + number, digits only
   replyTime: "We reply within one working day",
   walkthrough: "https://cal.id/celestial/product-walkthrough", // book a product walkthrough call with the team
@@ -19,10 +18,8 @@ export const CONTACT = {
   },
 };
 
-export const CONTACT_EMAIL = CONTACT.email;
-
 // Team inbox shown in the FAQ section
-export const TEAM_EMAIL = "celestial.team.011@gmail.com";
+export const TEAM_EMAIL = CONTACT.email;
 
 // FAQ: `topic` labels the message in the iPad inbox, `q` / `a` are the question and reply.
 export const faqs = [
@@ -85,7 +82,6 @@ export const services = [
     title: "Website Development & E-Commerce",
     desc: "High-conversion, minimalist web platforms, customer portals, and tailored e-commerce builds built for speed and scale.",
     icon: "web",
-    accent: "burgundy",
     tags: ["Web platforms", "Customer portals", "E-commerce", "Built for speed"],
   },
   {
@@ -94,7 +90,6 @@ export const services = [
     title: "CRM & Business Systems",
     desc: "Custom account management, deal pipelines, contact tracking, quotes, automated follow-ups, and live reporting.",
     icon: "crm",
-    accent: "taupe",
     tags: ["Deal pipelines", "Contact tracking", "Quotes", "Live reporting"],
   },
   {
@@ -103,7 +98,6 @@ export const services = [
     title: "Automation & Custom Software",
     desc: "Purpose-built workflows that eliminate manual friction, spreadsheets, and repetitive handoffs.",
     icon: "automation",
-    accent: "burgundy",
     tags: ["Workflows", "Custom software", "No more spreadsheets", "Zero handoffs"],
   },
   {
@@ -112,7 +106,6 @@ export const services = [
     title: "Meta & Google Ads Growth",
     desc: "Data-backed digital growth strategies, targeted advertising campaigns, SEO optimization, and ROI tracking.",
     icon: "ads",
-    accent: "taupe",
     tags: ["Meta Ads", "Google Ads", "SEO", "ROI tracking"],
   },
   {
@@ -121,7 +114,6 @@ export const services = [
     title: "API & Data Systems Integration",
     desc: "Connecting existing tools, databases, and APIs into one unified operational architecture without forced rip-and-replace.",
     icon: "api",
-    accent: "burgundy",
     tags: ["API integration", "Databases", "Unified architecture", "No rip-and-replace"],
   },
   {
@@ -130,7 +122,6 @@ export const services = [
     title: "Managed Tech & CTO Support",
     desc: "Ongoing support, monitoring, technical leadership, and compute infrastructure provisioning.",
     icon: "cto",
-    accent: "taupe",
     tags: ["Monitoring", "Technical leadership", "Infrastructure", "Ongoing support"],
   },
 ] as const;

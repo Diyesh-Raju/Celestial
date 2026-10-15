@@ -20,8 +20,6 @@ const channels = [
   {
     icon: Phone,
     label: "Call us",
-    value: CONTACT.phone,
-    href: `tel:${CONTACT.phone.replace(/\s/g, "")}`,
     numbers: CONTACT.phones.map((n) => ({ text: n, href: `tel:+${digits(n)}` })),
     note: `${CONTACT.hours[0].days}, ${CONTACT.hours[0].time}`,
     glow: "bg-burgundy/20",
@@ -30,8 +28,6 @@ const channels = [
   {
     icon: MessageCircle,
     label: "WhatsApp",
-    value: CONTACT.phone,
-    href: whatsappHref,
     numbers: CONTACT.phones.map((n) => ({ text: n, href: `https://wa.me/${digits(n)}` })),
     note: "Message us with your requirement",
     glow: "bg-taupe/40",

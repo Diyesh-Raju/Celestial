@@ -97,6 +97,7 @@ function QuestionRow({
   onSelect: () => void;
 }) {
   const id = `faq-answer-${index}`;
+  const questionId = `faq-question-${index}`;
   return (
     <li className="relative border-t border-paper/10">
       {active && (
@@ -107,6 +108,7 @@ function QuestionRow({
         />
       )}
       <button
+        id={questionId}
         type="button"
         onClick={onSelect}
         aria-expanded={active}
@@ -140,7 +142,7 @@ function QuestionRow({
 
       {/* Inline answer for small screens; on desktop it stays for screen readers only,
           since the tablet (aria-hidden) shows it visually. */}
-      <div id={id} role="region" className={active ? "relative pb-6 pl-9 pr-2 lg:sr-only" : "hidden"}>
+      <div id={id} role="region" aria-labelledby={questionId} className={active ? "relative pb-6 pl-9 pr-2 lg:sr-only" : "hidden"}>
         <p className="text-sm leading-relaxed text-paper/80">{faq.a}</p>
       </div>
     </li>

@@ -50,6 +50,14 @@ const smooth = (a: number, b: number, v: number) => {
 /** Angle wrapped to (-π, π]. */
 const wrap = (a: number) => a - TAU * Math.floor((a + Math.PI) / TAU);
 
+/** Waits until the browser is idle, so setup runs between frames instead of stalling the page. */
+const whenIdle = () =>
+  new Promise<void>((resolve) =>
+    "requestIdleCallback" in window
+      ? requestIdleCallback(() => resolve(), { timeout: 300 })
+      : requestAnimationFrame(() => setTimeout(resolve, 0)),
+  );
+
 type Pose = { device: Device; x: number; y: number; s: number; yaw: number; tilt: number; open: number };
 
 export type SceneApi = {
@@ -60,6 +68,8 @@ export type SceneApi = {
 
 export type SceneOptions = {
   canvas: HTMLCanvasElement;
+  /** The canvas's WebGL2 context, already created (the caller checks for support with it). */
+  context: WebGL2RenderingContext;
   reduced: boolean;
 };
 
@@ -201,9 +211,14 @@ function buildKeyboard(material: THREE.Material) {
   return mesh;
 }
 
-export function createMacbookScene({ canvas, reduced }: SceneOptions): SceneApi {
+/**
+ * Builds the scene in a few short steps with idle time in between (the studio
+ * lighting, screen textures and shader compiles together would otherwise block
+ * the page for a noticeable moment), resolving once it's ready to draw.
+ */
+export async function createMacbookScene({ canvas, context, reduced }: SceneOptions): Promise<SceneApi> {
   const host = canvas.parentElement!;
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
+  const renderer = new THREE.WebGLRenderer({ canvas, context, antialias: true, alpha: true, powerPreference: "high-performance" });
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -213,6 +228,7 @@ export function createMacbookScene({ canvas, reduced }: SceneOptions): SceneApi 
   const camera = new THREE.PerspectiveCamera(FOV, 1, 1, 40);
   camera.position.set(0, 0, CAM_DIST);
 
+  await whenIdle();
   const pmrem = new THREE.PMREMGenerator(renderer);
   const room = new RoomEnvironment();
   const envTarget = pmrem.fromScene(room, 0.04);
@@ -228,6 +244,8 @@ export function createMacbookScene({ canvas, reduced }: SceneOptions): SceneApi 
   const rim = new THREE.DirectionalLight(0xffe6da, 1.1);
   rim.position.set(4, 2.5, -5);
   scene.add(rim);
+
+  await whenIdle();
 
   /* ── Materials ── */
   // Charcoal grey anodised finish
@@ -248,17 +266,43 @@ export function createMacbookScene({ canvas, reduced }: SceneOptions): SceneApi 
   const shadowTex = radialTexture("rgba(20,10,8,1)", "rgba(20,10,8,0)");
   const shadowMat = new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, opacity: 0.32, depthWrite: false });
 
-  // All six displays are painted once and uploaded up front, so switching
-  // screens mid-flight costs nothing.
-  const screenTex = [1, 2, 3, 4, 5, 6].map((step) => {
-    const tex = new THREE.CanvasTexture(paintScreen(step));
+  // Each display is painted and uploaded once while the browser is idle (see
+  // warm() below), so switching screens mid-flight costs nothing.
+  // screenTexture() paints one on the spot if it's needed sooner.
+  const screenTex: (THREE.CanvasTexture | null)[] = Array(6).fill(null);
+  // Screens painted before the web fonts arrived, repainted once they do
+  const stale = new Set<number>();
+  let disposed = false;
+  const repaintStale = () => {
+    if (disposed) return;
+    stale.forEach((i) => {
+      const tex = screenTex[i]!;
+      paintScreen(i + 1, tex.image as HTMLCanvasElement);
+      tex.needsUpdate = true;
+    });
+    stale.clear();
+  };
+  const screenTexture = (i: number) => {
+    const ready = screenTex[i];
+    if (ready) return ready;
+    const tex = new THREE.CanvasTexture(paintScreen(i + 1));
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
     renderer.initTexture(tex);
+    screenTex[i] = tex;
+    if (document.fonts && document.fonts.status !== "loaded") {
+      if (!stale.size) document.fonts.ready.then(repaintStale);
+      stale.add(i);
+    }
     return tex;
-  });
-  const screenMat = new THREE.MeshBasicMaterial({ map: screenTex[0], toneMapped: false });
-  const phoneScreenMat = new THREE.MeshBasicMaterial({ map: screenTex[1], toneMapped: false });
+  };
+  // Holds the displays' place (and their shader) until render() swaps in a painted one
+  const blankCanvas = document.createElement("canvas");
+  blankCanvas.width = blankCanvas.height = 1;
+  const blank = new THREE.CanvasTexture(blankCanvas);
+  blank.colorSpace = THREE.SRGBColorSpace;
+  const screenMat = new THREE.MeshBasicMaterial({ map: blank, toneMapped: false });
+  const phoneScreenMat = new THREE.MeshBasicMaterial({ map: blank, toneMapped: false });
   // A fixed, faint sheen over the display. (A mirror-like glass reflected the
   // studio's brightest panel at some angles and hid the screen entirely.)
   const sheenTex = sheenTexture();
@@ -333,6 +377,8 @@ export function createMacbookScene({ canvas, reduced }: SceneOptions): SceneApi 
   const logo = new THREE.Mesh(logoGeo, logoMat);
   logo.position.set(0, LID_GAP + LID_H + 0.0008, D / 2);
   lid.add(logo);
+
+  await whenIdle();
 
   /* ── iPhone ── */
   // Charcoal grey, matching the MacBook
@@ -529,23 +575,27 @@ export function createMacbookScene({ canvas, reduced }: SceneOptions): SceneApi 
       // Nothing inside is visible with the lid shut; skip it
       const inside = open > 0.01;
       keyboard.visible = well.visible = pad.visible = screen.visible = glass.visible = inside;
-      if (screenMat.map !== screenTex[shown - 1]) screenMat.map = screenTex[shown - 1];
+      if (inside) screenMat.map = screenTexture(shown - 1);
       screenMat.color.setScalar(smooth(0.3, 0.9, open));
     }
-    if (showPhone && phoneScreenMat.map !== screenTex[shown - 1]) phoneScreenMat.map = screenTex[shown - 1];
+    if (showPhone) phoneScreenMat.map = screenTexture(shown - 1);
 
     renderer.render(scene, camera);
   }
 
-  // Repaint the displays once web fonts are in
-  let disposed = false;
-  document.fonts?.ready.then(() => {
-    if (disposed) return;
-    screenTex.forEach((tex, i) => {
-      paintScreen(i + 1, tex.image as HTMLCanvasElement);
-      tex.needsUpdate = true;
-    });
-  });
+  // Paint the remaining displays one at a time while the browser is idle
+  const warm = async () => {
+    for (let i = 0; i < screenTex.length; i++) {
+      if (disposed) return;
+      if (screenTex[i]) continue;
+      await whenIdle();
+      if (!disposed) screenTexture(i);
+    }
+  };
+  warm();
+
+  // Compile every shader in parallel off the main thread, rather than all at once in the first frame
+  await renderer.compileAsync(scene, camera);
 
   return {
     render,
@@ -559,9 +609,12 @@ export function createMacbookScene({ canvas, reduced }: SceneOptions): SceneApi 
           (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => m.dispose());
         }
       });
-      [logoTex, shadowTex, sheenTex, ...screenTex].forEach((t) => t.dispose());
+      [logoTex, shadowTex, sheenTex, blank, ...screenTex].forEach((t) => t?.dispose());
       envTarget.dispose();
       pmrem.dispose();
+      // Next keeps visited pages (and so this canvas and its context) for back navigation;
+      // hand the context back in its default state for the renderer that picks it up.
+      renderer.resetState();
       renderer.dispose();
     },
   };

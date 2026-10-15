@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { ArrowDown, ArrowRight, ArrowUpRight, CalendarDays } from "lucide-react";
 import { CONTACT } from "@/lib/data";
 import { createMonolith, type MonolithApi } from "@/components/hero/monolithScene";
+import { queueGpuSetup } from "@/lib/gpuQueue";
 
 // The hero: the orbit globe ringed by stars, hanging between the two halves
 // of the headline, with smoke drifting through it all (see hero/monolithScene.ts). The headline is a real <h1>; once the
@@ -113,19 +115,27 @@ export function Hero() {
     const heading = titleRef.current;
     if (!root || !canvas || !heading) return;
     // Without WebGL2 the hero stays as it renders: solid type on the CSS gradient.
-    const probe = document.createElement("canvas").getContext("webgl2");
-    if (!probe) return;
-    probe.getExtension("WEBGL_lose_context")?.loseContext();
+    // The context is created here, with the attributes three.js would ask for, and handed over.
+    const context = canvas.getContext("webgl2", {
+      alpha: false,
+      antialias: false,
+      depth: false,
+      stencil: false,
+      powerPreference: "high-performance",
+    });
+    if (!context) return;
 
     let api: MonolithApi;
     try {
-      api = createMonolith(canvas);
+      api = createMonolith(canvas, context);
     } catch {
       return;
     }
 
     const reduceMq = window.matchMedia("(prefers-reduced-motion: reduce)");
     let disposed = false;
+    // Nothing draws until the shaders are compiled (see api.ready)
+    let ready = false;
     let raf = 0;
     let last = 0;
     let inView = true;
@@ -179,7 +189,7 @@ export function Hero() {
       if (inView && !document.hidden && (motion() || now - lastClick < 4000)) raf = requestAnimationFrame(frame);
     };
     const kick = () => {
-      if (raf || disposed) return;
+      if (raf || disposed || !ready) return;
       last = performance.now();
       raf = requestAnimationFrame(frame);
     };
@@ -189,7 +199,7 @@ export function Hero() {
       return { x: (e.clientX - r.left) / r.width, y: 1 - (e.clientY - r.top) / r.height };
     };
     const onDown = (e: PointerEvent) => {
-      if ((e.target as Element).closest("a,button")) return;
+      if (!ready || (e.target as Element).closest("a,button")) return;
       const p = toUv(e);
       api.burst(p.x, p.y);
       lastClick = performance.now();
@@ -207,7 +217,11 @@ export function Hero() {
     canvas.addEventListener("webglcontextrestored", onRestored);
 
     layout();
-    kick();
+    const compiled = api.ready;
+    queueGpuSetup(() => compiled).then(() => {
+      ready = true;
+      kick();
+    });
 
     // The hero resizing, or the display font arriving after first paint,
     // both move the words.
@@ -331,19 +345,19 @@ export function Hero() {
             into revenue.
           </p>
           <div className="rise pointer-events-auto flex flex-wrap gap-3 [--delay:200ms]">
-            <a
+            <Link
               href="/contact"
               className="group/btn inline-flex h-12 items-center gap-2 rounded-full bg-paper px-6 text-[15px] font-semibold text-burgundy transition hover:bg-cream active:scale-[0.97]"
             >
               Start a project
               <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-0.5" />
-            </a>
-            <a
+            </Link>
+            <Link
               href="/portfolio"
               className="inline-flex h-12 items-center rounded-full border border-paper/25 bg-paper/[0.07] px-6 text-[15px] font-semibold text-paper backdrop-blur-md transition hover:border-paper/40 hover:bg-paper/[0.13] active:scale-[0.97]"
             >
               View selected work
-            </a>
+            </Link>
           </div>
         </div>
       </div>

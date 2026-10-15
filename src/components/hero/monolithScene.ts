@@ -53,6 +53,8 @@ export type MonolithApi = {
   setLayout: (focusY: number, sweepY: number) => void;
   burst: (x: number, y: number) => void;
   render: (frame: Frame) => void;
+  /** Resolves once every shader has compiled; rendering before then would stall on them. */
+  ready: Promise<unknown>;
   dispose: () => void;
 };
 
@@ -280,8 +282,9 @@ function makeDust() {
   return points;
 }
 
-export function createMonolith(canvas: HTMLCanvasElement): MonolithApi {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false, depth: false, powerPreference: "high-performance" });
+/** `context`: the canvas's WebGL2 context, already created by the caller. */
+export function createMonolith(canvas: HTMLCanvasElement, context: WebGL2RenderingContext): MonolithApi {
+  const renderer = new THREE.WebGLRenderer({ canvas, context, antialias: false, alpha: false, depth: false, powerPreference: "high-performance" });
   renderer.autoClear = false;
 
   const scene = new THREE.Scene();
@@ -359,6 +362,16 @@ export function createMonolith(canvas: HTMLCanvasElement): MonolithApi {
   const smokeB = new THREE.Color(BRAND.rose);
   const smoke = new THREE.Color();
 
+  // Compile everything up front, each pass for the target it draws into, so the
+  // GPU builds them in parallel instead of the first frame waiting on each in turn.
+  const compileFor = (target: THREE.WebGLRenderTarget | null, s: THREE.Scene, cam: THREE.Camera) => {
+    renderer.setRenderTarget(target);
+    const done = renderer.compileAsync(s, cam);
+    renderer.setRenderTarget(null);
+    return done;
+  };
+  const ready = Promise.all([compileFor(sceneRT, scene, camera), fluid.compile(), compileFor(null, quadScene, quadCam)]);
+
   const smokeColor = (gain: number) => smoke.copy(smokeA).lerp(smokeB, 0.5 + 0.5 * Math.sin(time * 0.7)).multiplyScalar(gain);
 
   /** Splat along the path from the ghost's last point to (x, y). */
@@ -371,6 +384,8 @@ export function createMonolith(canvas: HTMLCanvasElement): MonolithApi {
   };
 
   return {
+    ready,
+
     resize(w, h, dpr, lite) {
       width = w;
       height = h;
@@ -485,6 +500,9 @@ export function createMonolith(canvas: HTMLCanvasElement): MonolithApi {
       empty.dispose();
       composite.dispose();
       quad.geometry.dispose();
+      // Next keeps visited pages (and so this canvas and its context) for back navigation;
+      // hand the context back in its default state for the renderer that picks it up.
+      renderer.resetState();
       renderer.dispose();
     },
   };

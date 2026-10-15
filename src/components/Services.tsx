@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { ChevronDown, ChevronUp, Code2, Cpu, Database, Layers, TrendingUp, Workflow } from "lucide-react";
 import { services } from "@/lib/data";
+import { queueGpuSetup } from "@/lib/gpuQueue";
 import { deviceLayout, palettes, WIPE_RIM } from "./capabilities/theme";
 import type { SceneApi } from "./capabilities/macbookScene";
 import { SectionLabel } from "./Reveal";
@@ -163,6 +164,8 @@ export function Services() {
     const railItems = qa("[data-rail]");
     const nav = q("[data-nav]");
     const navUp = q("[data-nav-up]") as HTMLButtonElement;
+    const fallback = q("[data-fallback]");
+    const fallbackIcons = qa("[data-fallback-icon]", fallback);
     const panels: PanelEls[] = qa("[data-panel]").map((root) => ({
       root,
       words: qa("[data-word]", root),
@@ -288,17 +291,15 @@ export function Services() {
         for (const key in vars) stage.style.setProperty(key, vars[key]);
         railItems.forEach((el, i) => el.toggleAttribute("data-active", i + 1 === near));
         navUp.disabled = near <= 1;
-        const fallback = stage.querySelector<HTMLElement>("[data-fallback]");
-        if (fallback) {
-          const show = Math.max(1, near);
-          const F = deviceLayout(show, vw);
-          fallback.style.left = `${F.fx * 100}%`;
-          fallback.style.top = `${F.fy * 100}%`;
-          fallback.style.opacity = near === 0 ? "0" : "1";
-          qa("[data-fallback-icon]", fallback).forEach((icon, i) => {
-            icon.style.opacity = i + 1 === show ? "1" : "0";
-          });
-        }
+        // Positioned even while hidden, so it's in place the moment WebGL turns out to be missing
+        const show = Math.max(1, near);
+        const F = deviceLayout(show, vw);
+        fallback.style.left = `${F.fx * 100}%`;
+        fallback.style.top = `${F.fy * 100}%`;
+        fallback.style.opacity = near === 0 ? "0" : "1";
+        fallbackIcons.forEach((icon, i) => {
+          icon.style.opacity = i + 1 === show ? "1" : "0";
+        });
       }
     };
 
@@ -342,10 +343,24 @@ export function Services() {
     const load = () => {
       if (requested) return;
       requested = true;
-      import("./capabilities/macbookScene")
-        .then(({ createMacbookScene }) => {
-          if (cancelled) return;
-          scene = createMacbookScene({ canvas, reduced });
+      queueGpuSetup(async () => {
+        if (cancelled) throw new Error("Section left before its turn");
+        // three.js needs WebGL2; without it, skip the download and show the icon tile.
+        // The context is created here, with the attributes three.js would ask for, and handed over.
+        const context = canvas.getContext("webgl2", {
+          alpha: true,
+          antialias: true,
+          depth: true,
+          stencil: false,
+          powerPreference: "high-performance",
+        });
+        if (!context) throw new Error("WebGL2 unavailable");
+        const { createMacbookScene } = await import("./capabilities/macbookScene");
+        return createMacbookScene({ canvas, context, reduced });
+      })
+        .then((built) => {
+          if (cancelled) return built.dispose();
+          scene = built;
           scene.render(positionAt(smoothU < 0 ? scrollUnits() : smoothU), performance.now());
           setGl("ready");
         })
@@ -486,26 +501,26 @@ export function Services() {
           />
 
           {/* No WebGL: a simple icon tile where the device would be */}
-          {gl === "failed" && (
-            <div
-              data-fallback
-              aria-hidden
-              className="absolute grid h-40 w-40 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-[2rem] border border-[color:var(--line)] bg-[color:var(--chip)] text-[color:var(--accent)] transition-all duration-700 max-md:left-1/2! max-md:top-[36%]!"
-              style={{ opacity: 0 }}
-            >
-              {services.map((s) => {
-                const Icon = icons[s.icon];
-                return (
-                  <Icon
-                    key={s.num}
-                    data-fallback-icon
-                    className="absolute h-16 w-16 opacity-0 transition-opacity duration-500"
-                    strokeWidth={1.2}
-                  />
-                );
-              })}
-            </div>
-          )}
+          <div
+            data-fallback
+            aria-hidden
+            className={`absolute h-40 w-40 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-[2rem] border border-[color:var(--line)] bg-[color:var(--chip)] text-[color:var(--accent)] transition-all duration-700 max-md:left-1/2! max-md:top-[36%]! ${
+              gl === "failed" ? "grid" : "hidden"
+            }`}
+            style={{ opacity: 0 }}
+          >
+            {services.map((s) => {
+              const Icon = icons[s.icon];
+              return (
+                <Icon
+                  key={s.num}
+                  data-fallback-icon
+                  className="absolute h-16 w-16 opacity-0 transition-opacity duration-500"
+                  strokeWidth={1.2}
+                />
+              );
+            })}
+          </div>
 
           {/* Intro heading */}
           <div className="absolute inset-x-0 top-0 px-6 pt-28 md:pt-36">

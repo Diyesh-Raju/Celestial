@@ -10,9 +10,58 @@ import {
 } from "framer-motion";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
-type Geometry = { w: number; h: number; d: string; stroke: number };
+/** `ys[i]` is the path's y at fraction `i / (ys.length - 1)` of its length. */
+type Geometry = { w: number; h: number; d: string; stroke: number; ys: Float32Array };
 
+type Point = { x: number; y: number };
+
+/** Points per curve segment when measuring the path. */
+const STEPS = 96;
+/** Entries in the length → y table. */
 const SAMPLES = 400;
+
+/**
+ * Measures the ribbon in plain JS, straight from its cubic segments (asking the
+ * SVG for 400 points along a long path blocks the main thread for a frame or more).
+ * Returns the y at evenly spaced fractions of the path's length.
+ */
+function sampleYs(pts: Point[], k: (a: Point, b: Point) => number) {
+  const lens = [0];
+  const yAt = [pts[0].y];
+  let len = 0;
+  let px = pts[0].x;
+  let py = pts[0].y;
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1];
+    const b = pts[i];
+    const c = k(a, b);
+    for (let s = 1; s <= STEPS; s++) {
+      const t = s / STEPS;
+      const u = 1 - t;
+      // Control points (a.x, a.y + c) and (b.x, b.y - c), as in the path's C commands
+      const x = u * u * u * a.x + 3 * u * u * t * a.x + 3 * u * t * t * b.x + t * t * t * b.x;
+      const y = u * u * u * a.y + 3 * u * u * t * (a.y + c) + 3 * u * t * t * (b.y - c) + t * t * t * b.y;
+      len += Math.hypot(x - px, y - py);
+      lens.push(len);
+      yAt.push(y);
+      px = x;
+      py = y;
+    }
+  }
+  const ys = new Float32Array(SAMPLES + 1);
+  let j = 0;
+  let max = -Infinity;
+  for (let i = 0; i <= SAMPLES; i++) {
+    const target = (len * i) / SAMPLES;
+    while (j < lens.length - 2 && lens[j + 1] < target) j++;
+    const span = lens[j + 1] - lens[j] || 1;
+    const y = yAt[j] + ((yAt[j + 1] - yAt[j]) * (target - lens[j])) / span;
+    // Running max keeps the lookup monotonic even if a curve dips slightly.
+    max = Math.max(max, y);
+    ys[i] = max;
+  }
+  return ys;
+}
 
 /** Top/left of `node` measured from `root`, ignoring transforms (Reveal shifts content while hidden). */
 function offsetWithin(node: HTMLElement, root: HTMLElement) {
@@ -36,8 +85,6 @@ function offsetWithin(node: HTMLElement, root: HTMLElement) {
  */
 export function RibbonTrack({ children, className }: { children: ReactNode; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
-  const pathRef = useRef<SVGPathElement>(null);
-  const ys = useRef<Float32Array | null>(null);
   const [geo, setGeo] = useState<Geometry | null>(null);
   const reduced = useReducedMotion();
 
@@ -47,7 +94,7 @@ export function RibbonTrack({ children, className }: { children: ReactNode; clas
 
   // Scroll progress → the path length whose point sits at the viewport's centre line.
   const update = useCallback(() => {
-    const s = ys.current;
+    const s = geo?.ys;
     const h = ref.current?.offsetHeight;
     if (!s || !h) return;
     if (reduced) return draw.set(1);
@@ -58,7 +105,7 @@ export function RibbonTrack({ children, className }: { children: ReactNode; clas
     if (i > SAMPLES) return draw.set(1);
     const t = (y - s[i - 1]) / Math.max(s[i] - s[i - 1], 0.0001);
     draw.set((i - 1 + t) / SAMPLES);
-  }, [draw, reduced, scrollYProgress]);
+  }, [draw, geo, reduced, scrollYProgress]);
 
   useMotionValueEvent(scrollYProgress, "change", update);
 
@@ -85,16 +132,16 @@ export function RibbonTrack({ children, className }: { children: ReactNode; clas
       pts.push({ x: w * 0.5, y: end ? offsetWithin(end, root).y : h });
 
       // Vertical tangents at every stop give a smooth, sweeping S between rows.
+      const k = (a: Point, b: Point) => (b.y - a.y) * 0.55;
       let d = `M${pts[0].x} ${pts[0].y}`;
       for (let i = 1; i < pts.length; i++) {
         const a = pts[i - 1];
         const b = pts[i];
-        const k = (b.y - a.y) * 0.55;
-        d += ` C${a.x} ${a.y + k} ${b.x} ${b.y - k} ${b.x} ${b.y}`;
+        d += ` C${a.x} ${a.y + k(a, b)} ${b.x} ${b.y - k(a, b)} ${b.x} ${b.y}`;
       }
 
       const stroke = mobile ? 40 : Math.min(140, Math.max(72, w * 0.11));
-      setGeo((g) => (g && g.d === d && g.w === w && g.h === h ? g : { w, h, d, stroke }));
+      setGeo((g) => (g && g.d === d && g.w === w && g.h === h ? g : { w, h, d, stroke, ys: sampleYs(pts, k) }));
     };
 
     build();
@@ -103,21 +150,8 @@ export function RibbonTrack({ children, className }: { children: ReactNode; clas
     return () => ro.disconnect();
   }, []);
 
-  // Sample the rendered path once per geometry so scroll → length is a cheap lookup.
-  useLayoutEffect(() => {
-    const p = pathRef.current;
-    if (!p || !geo) return;
-    const total = p.getTotalLength();
-    const s = new Float32Array(SAMPLES + 1);
-    let max = -Infinity;
-    for (let i = 0; i <= SAMPLES; i++) {
-      // Running max keeps the lookup monotonic even if a curve dips slightly.
-      max = Math.max(max, p.getPointAtLength((total * i) / SAMPLES).y);
-      s[i] = max;
-    }
-    ys.current = s;
-    update();
-  }, [geo, update]);
+  // Sync the drawn length with the current scroll whenever the geometry changes.
+  useLayoutEffect(update, [update]);
 
   return (
     <div ref={ref} className={`relative ${className ?? ""}`}>
@@ -138,7 +172,6 @@ export function RibbonTrack({ children, className }: { children: ReactNode; clas
             </linearGradient>
           </defs>
           <motion.path
-            ref={pathRef}
             d={geo.d}
             stroke="url(#ribbon-fill)"
             strokeWidth={geo.stroke}

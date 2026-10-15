@@ -64,7 +64,7 @@ export type DeviceLayout = {
   yaw: number; // turn (rad); + faces right
 };
 
-export const isMobileWidth = (w: number) => w < 768;
+const isMobileWidth = (w: number) => w < 768;
 
 /** Where the device rests for a step, given the stage width in px. */
 export function deviceLayout(step: number, w: number): DeviceLayout {

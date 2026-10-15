@@ -159,6 +159,8 @@ export type Fluid = {
   step: (dt: number) => void;
   /** Size the grids for a drawing surface of w × h pixels. */
   resize: (w: number, h: number, lite: boolean) => void;
+  /** Compiles every pass's shader (in parallel where supported), resolving when all are ready. */
+  compile: () => Promise<unknown>;
   dispose: () => void;
 };
 
@@ -335,6 +337,21 @@ export function createFluid(renderer: THREE.WebGLRenderer): Fluid {
       a.dissipation.value = DYE_DISSIPATION;
       pass(M.advect, dye.write, dyeTexel);
       dye.swap();
+    },
+
+    compile() {
+      // One quad per pass, so they all compile together instead of one by one in the first step()
+      const passes = new THREE.Scene();
+      for (const m of Object.values(M)) {
+        const q = new THREE.Mesh(quad.geometry, m);
+        q.frustumCulled = false;
+        passes.add(q);
+      }
+      // Bound so the shaders are built for drawing into the grids, as step() does
+      renderer.setRenderTarget(velocity.read);
+      const done = renderer.compileAsync(passes, camera);
+      renderer.setRenderTarget(null);
+      return done;
     },
 
     dispose() {
