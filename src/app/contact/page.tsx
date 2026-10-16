@@ -8,7 +8,7 @@ import { SocialIcons } from "@/components/SocialIcons";
 import { CONTACT, portfolio } from "@/lib/data";
 
 export const metadata: Metadata = {
-  title: "Contact — Celestial Co.",
+  title: "Contact — Celestial Developers",
   description:
     "Tell us what you want to build. Websites, CRMs, Meta & Google ads and automation — start with a conversation.",
 };

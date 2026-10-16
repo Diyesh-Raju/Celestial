@@ -1,4 +1,4 @@
-/* Celestial Co mark geometry (48×48 box): an open "C", a crescent moon inside it
+/* Celestial Developers mark geometry (48×48 box): an open "C", a crescent moon inside it
    and a four-point star in the moon's hollow. Shared by the SVG mark, the app
    icons and the 3D device logo so they never drift apart. */
 export const LOGO_VIEWBOX = "0 0 48 48";

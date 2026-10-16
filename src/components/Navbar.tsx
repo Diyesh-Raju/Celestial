@@ -8,7 +8,7 @@ import { ArrowUpRight, CalendarDays } from "lucide-react";
 import { CONTACT, navLinks } from "@/lib/data";
 import { LOGO_C, LOGO_C_STROKE, LOGO_MOON, LOGO_STAR, LOGO_VIEWBOX } from "@/lib/logo";
 
-/* Celestial Co mark: an open C holding a crescent moon and a star */
+/* Celestial Developers mark: an open C holding a crescent moon and a star */
 export function LogoMark({ className = "" }: { className?: string }) {
   return (
     <svg viewBox={LOGO_VIEWBOX} aria-hidden className={className}>
@@ -19,14 +19,14 @@ export function LogoMark({ className = "" }: { className?: string }) {
   );
 }
 
-/* Wordmark: "CELESTIAL CO." in wide-tracked Montserrat caps */
+/* Wordmark: "CELESTIAL DEVELOPERS" in wide-tracked Montserrat caps */
 export function Wordmark({ className = "" }: { className?: string }) {
-  return <span className={`font-brand uppercase leading-none tracking-[0.06em] ${className}`}>Celestial Co.</span>;
+  return <span className={`font-brand uppercase leading-none tracking-[0.06em] ${className}`}>Celestial Developers</span>;
 }
 
 export function Logo({ light = false }: { light?: boolean }) {
   return (
-    <Link href="/" className="flex items-center gap-2.5" aria-label="Celestial Corporation home">
+    <Link href="/" className="flex items-center gap-2.5" aria-label="Celestial Developers home">
       <LogoMark className={`h-9 w-9 ${light ? "text-white" : "text-burgundy"}`} />
       <Wordmark className={`text-lg ${light ? "text-white" : "text-ink"}`} />
     </Link>
@@ -36,7 +36,7 @@ export function Logo({ light = false }: { light?: boolean }) {
 /* Navbar brand, set in light taupe so it sits directly on the dark hero */
 function NavBrand() {
   return (
-    <Link href="/" className="flex items-center gap-2 text-paper sm:gap-3" aria-label="Celestial Corporation home">
+    <Link href="/" className="flex items-center gap-2 text-paper sm:gap-3" aria-label="Celestial Developers home">
       <LogoMark className="h-9 w-9 sm:h-10 sm:w-10" />
       <Wordmark className="text-[17px] sm:text-xl" />
     </Link>
@@ -132,7 +132,7 @@ function MenuOverlay({ onClose, onNavigate }: { onClose: () => void; onNavigate:
         transition={{ delay: 0.7, duration: 0.5 }}
         className="grid grid-cols-[1fr_auto] items-center gap-2 text-sm md:grid-cols-[1fr_1fr_auto]"
       >
-        <span>© {new Date().getFullYear()} Celestial Corporation</span>
+        <span>© {new Date().getFullYear()} Celestial Developers</span>
         <a href={`mailto:${CONTACT.email}`} className="hidden transition hover:text-burgundy-deep md:block">
           {CONTACT.email}
         </a>

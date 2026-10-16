@@ -47,7 +47,7 @@ export function Footer({ bleed = false }: { bleed?: boolean }) {
       >
         Celestial
         <br />
-        Corporation
+        Developers
       </p>
 
       <div className="relative mx-auto mt-16 grid max-w-6xl gap-14 md:mt-24 md:grid-cols-[1fr_1.3fr_1fr]">
@@ -91,7 +91,7 @@ export function Footer({ bleed = false }: { bleed?: boolean }) {
       </div>
 
       <div className="relative mx-auto mt-20 flex max-w-6xl flex-col items-center justify-between gap-3 border-t border-white/10 py-8 text-xs text-white/50 md:flex-row">
-        <span>© 2026 Celestial Corporation. All rights reserved.</span>
+        <span>© 2026 Celestial Developers. All rights reserved.</span>
         <a href="#top" className="transition hover:text-white">Back to top ↑</a>
       </div>
     </footer>

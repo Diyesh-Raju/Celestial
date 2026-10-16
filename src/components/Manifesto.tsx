@@ -38,7 +38,7 @@ export function Manifesto() {
             </blockquote>
             <figcaption className="mt-8 inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.3em] text-paper/60">
               <span className="h-px w-8 bg-rose" />
-              Celestial Co. · Our promise
+              Celestial Developers · Our promise
             </figcaption>
           </figure>
         </Reveal>

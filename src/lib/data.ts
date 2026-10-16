@@ -1,11 +1,11 @@
 // TODO: replace the placeholder hours and social links with real ones.
 export const CONTACT = {
-  email: "celestial.team.011@gmail.com",
+  email: "team@celestialdevelopers.com",
   phones: ["+91 8310818878", "+91 8618429404", "+91 6360416204"], // all on calls and WhatsApp
   whatsapp: "918310818878", // primary WhatsApp: country code + number, digits only
   replyTime: "We reply within one working day",
   walkthrough: "https://cal.id/celestial/product-walkthrough", // book a product walkthrough call with the team
-  location: ["Celestial Corporation", "India · Working with clients everywhere"],
+  location: ["Celestial Developers", "India · Working with clients everywhere"],
   hours: [
     { days: "Monday – Friday", time: "10:00 am – 7:00 pm" },
     { days: "Saturday", time: "10:00 am – 4:00 pm" },

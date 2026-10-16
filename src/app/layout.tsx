@@ -17,7 +17,7 @@ const anton = Anton({
   subsets: ["latin"],
 });
 
-// Wordmark face ("CELESTIAL CO."), see --font-brand
+// Wordmark face ("CELESTIAL DEVELOPERS"), see --font-brand
 const montserrat = Montserrat({
   variable: "--font-montserrat",
   weight: "400",
@@ -25,9 +25,9 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: "Celestial Co.",
+  title: "Celestial Developers",
   description:
-    "Celestial Corporation builds high-performance websites, custom CRMs and Meta & Google ad systems that turn scattered work into one connected growth engine.",
+    "Celestial Developers builds high-performance websites, custom CRMs and Meta & Google ad systems that turn scattered work into one connected growth engine.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
