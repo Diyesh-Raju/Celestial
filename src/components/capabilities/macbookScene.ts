@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { paintScreen, PHONE_H, PHONE_W } from "./screens";
 import { deviceLayout, type Device } from "./theme";
-import { LOGO_C, LOGO_C_STROKE, LOGO_MOON, LOGO_STAR } from "@/lib/logo";
+import { LOGO_C, LOGO_C_STROKE, LOGO_D } from "@/lib/logo";
 
 // A MacBook and an iPhone built from primitives (no model files to download),
 // posed purely from scroll position — stop scrolling and it stops exactly
@@ -156,7 +156,7 @@ function sheenTexture() {
   return tex;
 }
 
-/** The Celestial mark (C, crescent moon and star) as an alpha mask. */
+/** The Celestial Developers mark (outlined C and filled D) as an alpha mask. */
 function logoTexture() {
   const c = document.createElement("canvas");
   c.width = c.height = 512;
@@ -168,8 +168,7 @@ function logoTexture() {
   ctx.fillStyle = "#fff";
   ctx.lineWidth = LOGO_C_STROKE;
   ctx.stroke(new Path2D(LOGO_C));
-  ctx.fill(new Path2D(LOGO_MOON));
-  ctx.fill(new Path2D(LOGO_STAR));
+  ctx.fill(new Path2D(LOGO_D));
   return new THREE.CanvasTexture(c);
 }
 
