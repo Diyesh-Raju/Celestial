@@ -135,9 +135,10 @@ function MenuOverlay({ onClose, onNavigate }: { onClose: () => void; onNavigate:
         <a href={`mailto:${CONTACT.email}`} className="hidden transition hover:text-burgundy-deep md:block">
           {CONTACT.email}
         </a>
-        <Link
-          href="/contact"
-          onNavigate={onNavigate("/contact")}
+        <a
+          href={CONTACT.walkthrough}
+          target="_blank"
+          rel="noopener noreferrer"
           className="group/book relative inline-flex h-12 items-center gap-2.5 justify-self-end overflow-hidden rounded-full border border-paper/15 bg-gradient-to-b from-burgundy to-burgundy-deep px-4 text-[15px] font-semibold text-paper shadow-[0_12px_30px_-12px_rgba(20,3,8,0.7)] transition hover:border-paper/30 active:scale-[0.97] md:h-14 md:gap-3 md:px-6 md:text-base"
         >
           <CalendarDays aria-hidden className="h-5 w-5 text-[#e7a9b8]" />
@@ -148,7 +149,7 @@ function MenuOverlay({ onClose, onNavigate }: { onClose: () => void; onNavigate:
           />
           {/* Soft light catching the bottom edge */}
           <span aria-hidden className="absolute inset-x-1/4 bottom-0 h-px bg-gradient-to-r from-transparent via-[#e7a9b8] to-transparent" />
-        </Link>
+        </a>
       </motion.div>
     </motion.div>
   );
