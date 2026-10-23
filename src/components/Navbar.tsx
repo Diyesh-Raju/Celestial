@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link, { type LinkProps } from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, MotionConfig, motion, stagger, type Variants } from "framer-motion";
 import { ArrowUpRight, CalendarDays } from "lucide-react";
 import { CONTACT, navLinks } from "@/lib/data";
 import { LOGO_C, LOGO_C_STROKE, LOGO_D, LOGO_VIEWBOX } from "@/lib/logo";
@@ -73,85 +73,118 @@ function jumpTo(hash: string) {
 
 type NavigateHandler = NonNullable<LinkProps["onNavigate"]>;
 
+/* Menu motion after the Rolls-Royce menu: the frosted panel drops from the top
+   on an out-expo glide (quick start, long soft landing), then the links sweep in
+   from the left one after another, bottom link first. Closing pulls the links
+   back out and lifts the panel. */
+const EASE_OUT_EXPO = [0.16, 1, 0.3, 1] as const;
+
+const panelVariants: Variants = {
+  closed: { y: "-100%", transition: { duration: 0.75, delay: 0.15, ease: [0.76, 0, 0.24, 1] } },
+  open: { y: "0%", transition: { duration: 1.1, ease: EASE_OUT_EXPO } },
+};
+
+const linkListVariants: Variants = {
+  closed: { transition: { delayChildren: stagger(0.025) } },
+  open: { transition: { delayChildren: stagger(0.07, { startDelay: 0.25, from: "last" }) } },
+};
+
+// Each link row spans the menu's width, so -100% starts its text off the left edge
+const linkVariants: Variants = {
+  closed: { x: "-100%", opacity: 0, transition: { duration: 0.35, ease: [0.7, 0, 0.84, 0] } },
+  open: {
+    x: "0%",
+    opacity: 1,
+    transition: { duration: 1.2, ease: EASE_OUT_EXPO, opacity: { duration: 0.8, ease: "easeOut" } },
+  },
+};
+
 function MenuOverlay({ onClose, onNavigate }: { onClose: () => void; onNavigate: (href: string) => NavigateHandler }) {
   return (
-    <motion.div
-      id="site-menu"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Site menu"
-      initial={{ clipPath: "inset(0 0 100% 0)" }}
-      animate={{ clipPath: "inset(0 0 0% 0)" }}
-      exit={{ clipPath: "inset(0 0 100% 0)" }}
-      transition={{ duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
-      className="fixed inset-0 z-[60] flex flex-col bg-taupe px-5 py-5 text-burgundy md:px-8 md:py-6"
-    >
-      <div className="flex items-center justify-between">
-        <Link href="/" onNavigate={onNavigate("/")} className="flex items-center gap-2.5">
-          <LogoMark className="h-8 w-8" />
-          <Wordmark className="text-lg" />
-        </Link>
-        <button
-          onClick={onClose}
-          aria-label="Close menu"
-          autoFocus
-          className="grid h-12 w-12 place-items-center text-burgundy transition hover:text-burgundy-deep active:scale-[0.92]"
-        >
-          <span aria-hidden className="relative block h-6 w-6">
-            <span className="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 rotate-45 rounded-full bg-current" />
-            <span className="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 -rotate-45 rounded-full bg-current" />
-          </span>
-        </button>
-      </div>
-
-      <div className="flex flex-1 flex-col items-center justify-center text-center">
-        <nav className="flex flex-col items-center">
-          {menuLinks.map((l, i) => (
-            <motion.div
-              key={l.href}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 + i * 0.06, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <Link
-                href={l.href}
-                onNavigate={onNavigate(l.href)}
-                className="inline-block font-display text-5xl leading-[1.1] tracking-tight transition-colors duration-300 hover:text-burgundy-deep md:text-6xl"
-              >
-                {l.label}
-              </Link>
-            </motion.div>
-          ))}
-        </nav>
-      </div>
-
+    <>
+      {/* Dims the page while the panel travels over it */}
       <motion.div
+        aria-hidden
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.7, duration: 0.5 }}
-        className="grid grid-cols-[1fr_auto] items-center gap-2 text-sm md:grid-cols-[1fr_1fr_auto]"
+        animate={{ opacity: 1, transition: { duration: 0.5 } }}
+        exit={{ opacity: 0, transition: { duration: 0.75, delay: 0.15 } }}
+        className="pointer-events-none fixed inset-0 z-[60] bg-burgundy-deep/40"
+      />
+      {/* Frosted panel: tinted lighter than taupe so that over the dark hero it lands
+          on the brand taupe (keeping the footer text readable), lighter elsewhere */}
+      <motion.div
+        id="site-menu"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Site menu"
+        variants={panelVariants}
+        initial="closed"
+        animate="open"
+        exit="closed"
+        className="fixed inset-0 z-[60] flex flex-col overflow-hidden bg-[#b9aa9e]/88 px-5 py-5 text-burgundy shadow-[0_30px_80px_-20px_rgba(20,3,8,0.6)] backdrop-blur-[48px] backdrop-saturate-150 md:px-8 md:py-6"
       >
-        <span>© {new Date().getFullYear()} Celestial Developers</span>
-        <a href={`mailto:${CONTACT.email}`} className="hidden transition hover:text-burgundy-deep md:block">
-          {CONTACT.email}
-        </a>
-        <a
-          href={CONTACT.walkthrough}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group/book relative inline-flex h-12 items-center gap-2.5 justify-self-end overflow-hidden rounded-full border border-paper/15 bg-gradient-to-b from-burgundy to-burgundy-deep px-4 text-[15px] font-semibold text-paper shadow-[0_12px_30px_-12px_rgba(20,3,8,0.7)] transition hover:border-paper/30 active:scale-[0.97] md:h-14 md:gap-3 md:px-6 md:text-base"
+        <div className="flex items-center justify-between">
+          <Link href="/" onNavigate={onNavigate("/")} className="flex items-center gap-2.5">
+            <LogoMark className="h-8 w-8" />
+            <Wordmark className="text-lg" />
+          </Link>
+          <button
+            onClick={onClose}
+            aria-label="Close menu"
+            autoFocus
+            className="grid h-12 w-12 place-items-center text-burgundy transition hover:text-burgundy-deep active:scale-[0.92]"
+          >
+            <span aria-hidden className="relative block h-6 w-6">
+              <span className="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 rotate-45 rounded-full bg-current" />
+              <span className="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 -rotate-45 rounded-full bg-current" />
+            </span>
+          </button>
+        </div>
+
+        <div className="flex flex-1 flex-col items-center justify-center text-center">
+          <motion.nav variants={linkListVariants} className="flex w-full flex-col items-center">
+            {menuLinks.map((l) => (
+              <motion.div key={l.href} variants={linkVariants} className="w-full">
+                <Link
+                  href={l.href}
+                  onNavigate={onNavigate(l.href)}
+                  className="inline-block font-display text-5xl leading-[1.1] tracking-tight transition-colors duration-300 hover:text-burgundy-deep md:text-6xl"
+                >
+                  {l.label}
+                </Link>
+              </motion.div>
+            ))}
+          </motion.nav>
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7, duration: 0.5 }}
+          className="grid grid-cols-[1fr_auto] items-center gap-2 text-sm md:grid-cols-[1fr_1fr_auto]"
         >
-          <CalendarDays aria-hidden className="h-5 w-5 text-[#e7a9b8]" />
-          Book a walkthrough
-          <ArrowUpRight
-            aria-hidden
-            className="h-5 w-5 text-paper/70 transition-transform group-hover/book:-translate-y-0.5 group-hover/book:translate-x-0.5"
-          />
-          {/* Soft light catching the bottom edge */}
-          <span aria-hidden className="absolute inset-x-1/4 bottom-0 h-px bg-gradient-to-r from-transparent via-[#e7a9b8] to-transparent" />
-        </a>
+          <span>© {new Date().getFullYear()} Celestial Developers</span>
+          <a href={`mailto:${CONTACT.email}`} className="hidden transition hover:text-burgundy-deep md:block">
+            {CONTACT.email}
+          </a>
+          <a
+            href={CONTACT.walkthrough}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group/book relative inline-flex h-12 items-center gap-2.5 justify-self-end overflow-hidden rounded-full border border-paper/15 bg-gradient-to-b from-burgundy to-burgundy-deep px-4 text-[15px] font-semibold text-paper shadow-[0_12px_30px_-12px_rgba(20,3,8,0.7)] transition hover:border-paper/30 active:scale-[0.97] md:h-14 md:gap-3 md:px-6 md:text-base"
+          >
+            <CalendarDays aria-hidden className="h-5 w-5 text-[#e7a9b8]" />
+            Book a walkthrough
+            <ArrowUpRight
+              aria-hidden
+              className="h-5 w-5 text-paper/70 transition-transform group-hover/book:-translate-y-0.5 group-hover/book:translate-x-0.5"
+            />
+            {/* Soft light catching the bottom edge */}
+            <span aria-hidden className="absolute inset-x-1/4 bottom-0 h-px bg-gradient-to-r from-transparent via-[#e7a9b8] to-transparent" />
+          </a>
+        </motion.div>
       </motion.div>
-    </motion.div>
+    </>
   );
 }
 
@@ -164,7 +197,7 @@ export function Navbar() {
   const pendingHash = useRef<string | null>(null);
 
   // Menu links move the page while the menu still covers it, then the menu lifts
-  // (bottom to top, see the exit clip-path) to reveal wherever the link pointed.
+  // (see panelVariants) to reveal wherever the link pointed.
   const navigateFromMenu = (href: string): NavigateHandler => (e) => {
     e.preventDefault();
     if (pendingHash.current !== null) return;
@@ -233,7 +266,9 @@ export function Navbar() {
 
       {/* Rendered outside <header>: its backdrop-filter would otherwise trap this
           fixed overlay inside the header's own box. */}
-      <AnimatePresence>{open && <MenuOverlay onClose={() => setOpen(false)} onNavigate={navigateFromMenu} />}</AnimatePresence>
+      <MotionConfig reducedMotion="user">
+        <AnimatePresence>{open && <MenuOverlay onClose={() => setOpen(false)} onNavigate={navigateFromMenu} />}</AnimatePresence>
+      </MotionConfig>
     </>
   );
 }
