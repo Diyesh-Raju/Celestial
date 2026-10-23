@@ -28,6 +28,8 @@
   --font-brand: var(--font-montserrat), "Montserrat", "Helvetica Neue", Arial, sans-serif;
   /* Poster headlines (Process section) */
   --font-condensed: var(--font-anton), "Anton", Impact, "Arial Narrow", sans-serif;
+  /* Pen handwriting (notebook section) */
+  --font-hand: var(--font-nothing), "Nothing You Could Do", "Bradley Hand", cursive;
 
   --animate-marquee: marquee 60s linear infinite;
   --animate-marquee-reverse: marquee-reverse 60s linear infinite;
@@ -186,6 +188,77 @@ body {
   filter: none;
 }
 
+/* Notebook binder (components/notebook). Its root is a size container and
+   everything inside is measured in book units of 0.1cqw. Ruled-line spacing and
+   the handwriting grow on narrow binders so phones can still read the notes. */
+.nb-scale {
+  --rule: 3.1cqw;
+  --hand: 2.8cqw;
+  --nb-ink: #1f2038; /* blue-black fountain-pen ink */
+  --nb-wine: #5e1527; /* red-wine ink for headings, ticks and marks */
+}
+@container (max-width: 560px) {
+  .nb-scale {
+    --rule: 4.05cqw;
+    --hand: 3.7cqw;
+  }
+}
+.nb-ink {
+  font-family: var(--font-hand);
+  font-size: var(--hand);
+  line-height: var(--rule);
+  color: var(--nb-ink);
+  /* ink soaks into the paper rather than sitting on it */
+  mix-blend-mode: multiply;
+  -webkit-text-stroke: 0.014em currentColor;
+  text-shadow: 0 0 0.06em color-mix(in srgb, currentColor 30%, transparent);
+}
+/* Sit each line's baseline on its ruled line */
+.nb-ink p,
+.nb-ink li {
+  position: relative;
+  top: 0.1em;
+}
+.nb-head {
+  font-size: 1.16em;
+}
+.nb-sign {
+  font-size: 1.06em;
+  transform: rotate(-2.5deg);
+  transform-origin: 100% 100%;
+}
+.nb-stroke path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: calc(var(--hand) * 0.07);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The first spread writes itself in, word by word, once the binder is in view
+   (Binder adds .nb-go). Only while JS runs; reveal-all is the safety net. */
+.js .nb-write [data-w] {
+  clip-path: inset(-40% 100% -50% -10%);
+}
+.js .nb-write .nb-stroke path {
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+}
+.js .nb-go .nb-write [data-w] {
+  clip-path: inset(-40% -10% -50% -10%);
+  transition: clip-path var(--t) linear var(--d);
+}
+.js .nb-go .nb-write .nb-stroke path {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset var(--t) ease-in-out var(--d);
+}
+.reveal-all .nb-write [data-w] {
+  clip-path: none;
+}
+.reveal-all .nb-write .nb-stroke path {
+  stroke-dashoffset: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -194,6 +267,16 @@ body {
     opacity: 1;
     transform: none;
     filter: none;
+    transition: none;
+  }
+  .js .nb-write [data-w],
+  .js .nb-go .nb-write [data-w] {
+    clip-path: none;
+    transition: none;
+  }
+  .js .nb-write .nb-stroke path,
+  .js .nb-go .nb-write .nb-stroke path {
+    stroke-dashoffset: 0;
     transition: none;
   }
   *,

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Anton, Inter, Montserrat } from "next/font/google";
+import { Anton, Inter, Montserrat, Nothing_You_Could_Do } from "next/font/google";
 import { Navbar } from "@/components/Navbar";
 import "./globals.css";
 
@@ -24,6 +24,13 @@ const montserrat = Montserrat({
   subsets: ["latin"],
 });
 
+// Handwriting in the notebook section, see --font-hand
+const nothingYouCouldDo = Nothing_You_Could_Do({
+  variable: "--font-nothing",
+  weight: "400",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
   title: "Celestial Developers",
   description:
@@ -35,7 +42,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       data-scroll-behavior="smooth"
-      className={`${inter.variable} ${anton.variable} ${montserrat.variable} antialiased`}
+      className={`${inter.variable} ${anton.variable} ${montserrat.variable} ${nothingYouCouldDo.variable} antialiased`}
       suppressHydrationWarning
     >
       <head>

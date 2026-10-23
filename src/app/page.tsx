@@ -3,6 +3,7 @@ import { Footer } from "@/components/Footer";
 import { Hero } from "@/components/Hero";
 import { Manifesto } from "@/components/Manifesto";
 import { Marquee } from "@/components/Marquee";
+import { Notebook } from "@/components/Notebook";
 import { Process } from "@/components/Process";
 import { Reviews } from "@/components/Reviews";
 import { Services } from "@/components/Services";
@@ -15,6 +16,7 @@ export default function Home() {
     <div className="min-h-screen bg-paper text-ink">
       <main>
         <Hero />
+        <Notebook />
         <Marquee />
         <Services />
         <WhyUs />

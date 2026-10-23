@@ -216,3 +216,43 @@ export const marqueeRows = [
     "Scale without chaos",
   ],
 ];
+
+// The notebook under the hero: one spread of handwritten notes per promise.
+// `title` labels the button. On the pages, `heading` (one entry per written line)
+// and `body` fill the left side, `ticks` and `note` the right, with the [bracketed]
+// words in `note` circled or underlined in red ink. Phones show the same pages
+// smaller, so keep heading lines and ticks to about 13 characters.
+export const promises = [
+  {
+    title: "Fixed scope, fixed price",
+    heading: ["Fixed scope,", "fixed price."],
+    body: "We map the whole job before any work starts, then put one number on it.",
+    ticks: ["scope mapped", "one price", "dates agreed"],
+    note: "No [hourly meter.]",
+    mark: "circle",
+  },
+  {
+    title: "Progress you can see",
+    heading: ["Progress", "you can see."],
+    body: "Working software from the first weeks, not one big reveal at the end.",
+    ticks: ["weekly demos", "live previews", "fast feedback"],
+    note: "[No surprises.]",
+    mark: "underline",
+  },
+  {
+    title: "You own everything",
+    heading: ["You own", "everything."],
+    body: "Your domain, code, customer data and ad accounts stay in your name.",
+    ticks: ["your code", "your data", "your ads"],
+    note: "Always [yours.]",
+    mark: "circle",
+  },
+  {
+    title: "We stay after launch",
+    heading: ["We stay", "after launch."],
+    body: "Monitoring, fixes and growth work, with CTO-level support as you scale.",
+    ticks: ["monitoring", "fixes", "CTO support"],
+    note: "Here for the [long run.]",
+    mark: "underline",
+  },
+] as const;

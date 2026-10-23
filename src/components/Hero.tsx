@@ -363,7 +363,7 @@ export function Hero() {
       </div>
 
       <a
-        href="#services"
+        href="#notebook"
         className="absolute inset-x-0 bottom-10 z-[2] mx-auto hidden w-fit items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-paper/50 transition hover:text-paper lg:flex"
       >
         <ArrowDown className="h-3.5 w-3.5 animate-bounce" /> Scroll
