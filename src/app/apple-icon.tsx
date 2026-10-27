@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { LOGO_C, LOGO_C_STROKE, LOGO_D, LOGO_VIEWBOX } from "@/lib/logo";
+import { LOGO_PATH, LOGO_VIEWBOX } from "@/lib/logo";
 
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
@@ -20,8 +20,7 @@ export default function AppleIcon() {
         }}
       >
         <svg width={mark} height={mark} viewBox={LOGO_VIEWBOX}>
-          <path d={LOGO_C} fill="none" stroke="#E8E0D8" strokeWidth={LOGO_C_STROKE} />
-          <path d={LOGO_D} fill="#E8E0D8" />
+          <path d={LOGO_PATH} fill="#E8E0D8" />
         </svg>
       </div>
     ),

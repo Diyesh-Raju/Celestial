@@ -6,14 +6,13 @@ import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, MotionConfig, motion, stagger, type Variants } from "framer-motion";
 import { ArrowUpRight, CalendarDays } from "lucide-react";
 import { CONTACT, navLinks } from "@/lib/data";
-import { LOGO_C, LOGO_C_STROKE, LOGO_D, LOGO_VIEWBOX } from "@/lib/logo";
+import { LOGO_PATH, LOGO_VIEWBOX } from "@/lib/logo";
 
-/* Celestial Developers mark ("Phase"): a half moon split into an outlined C and a filled D */
+/* Celestial Developers mark: a circle split into two mirrored crescent-and-bar halves */
 export function LogoMark({ className = "" }: { className?: string }) {
   return (
     <svg viewBox={LOGO_VIEWBOX} aria-hidden className={className}>
-      <path d={LOGO_C} fill="none" stroke="currentColor" strokeWidth={LOGO_C_STROKE} />
-      <path d={LOGO_D} fill="currentColor" />
+      <path d={LOGO_PATH} fill="currentColor" />
     </svg>
   );
 }
