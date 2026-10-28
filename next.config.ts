@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
   // routes /_next/image to the app, so the optimizer 404s in production.
   images: { unoptimized: true },
   // Tailwind is compiled through PostCSS (see postcss.config.mjs).
+  experimental: {
+    agentUpgrade: "security",
+  },
 };
 
 export default nextConfig;
