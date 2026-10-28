@@ -70,8 +70,8 @@ export function Reviews() {
       <div className="absolute inset-0 -z-10 bg-charcoal-deep/25" />
       {/* Charcoal from the section above fading into the image */}
       <div className="absolute inset-x-0 top-0 -z-10 h-48 bg-gradient-to-b from-charcoal to-transparent md:h-64" />
-      {/* Settle the circuit into one flat dark tone for the light work section below to fade out of */}
-      <div className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-gradient-to-t from-[#0b0d15] to-transparent md:h-56" />
+      {/* Settle the circuit into the footer's burgundy so the page ends without a seam */}
+      <div className="absolute inset-x-0 bottom-0 -z-10 h-48 bg-gradient-to-t from-burgundy-deep to-transparent md:h-72" />
 
       <Reveal className="relative mx-auto max-w-6xl">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">

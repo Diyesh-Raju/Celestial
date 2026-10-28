@@ -16,9 +16,7 @@ const EASE = "cubic-bezier(0.23, 1, 0.32, 1)";
 const pad = (n: number) => String(n).padStart(2, "0");
 const host = (url: string) => url.replace(/^https:\/\//, "").replace(/\/$/, "");
 
-/* `blend` (home page): fades in from the dark reviews section above and out into
-   the dark promise photo below, so the light block sits between them seamlessly */
-export function Work({ blend = false }: { blend?: boolean }) {
+export function Work() {
   // `previous` stays visible under the incoming slide while it wipes in (or out)
   const [{ current, previous }, setSlides] = useState({ current: 0, previous: 0 });
   const touchX = useRef<number | null>(null);
@@ -34,30 +32,8 @@ export function Work({ blend = false }: { blend?: boolean }) {
   return (
     <section
       id="work"
-      className={`relative scroll-mt-24 overflow-hidden px-3 md:px-6 ${
-        blend ? "bg-paper pb-[16rem] pt-[16rem] md:pb-[22rem] md:pt-[22rem]" : "py-24"
-      }`}
+      className="relative scroll-mt-24 overflow-hidden px-3 py-24 md:px-6"
     >
-      {blend && (
-        <>
-          <div
-            className="pointer-events-none absolute inset-x-0 top-0 h-48 md:h-72"
-            style={{
-              background:
-                "linear-gradient(to bottom, #0b0d15 0%, #14151d 12%, #35353a 28%, #6c6a6b 46%, #a49f9c 63%, #d1cac4 80%, #e8e0d8 100%)",
-            }}
-          />
-          <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-48 md:h-72"
-            style={{
-              background:
-                "linear-gradient(to bottom, #e8e0d8 0%, #e0d8d1 12%, #c1bab4 28%, #8f8985 46%, #5c5856 63%, #322f30 80%, #1d1b1c 100%)",
-            }}
-          />
-          {/* Soft burgundy glow, as in the light sections near the top of the page */}
-          <div className="pointer-events-none absolute -right-40 top-1/3 h-[420px] w-[620px] rounded-full bg-burgundy/[0.05] blur-[120px]" />
-        </>
-      )}
       <div className="relative mx-auto max-w-6xl px-3 md:px-0">
         <Reveal className="mb-12 flex flex-col justify-between gap-6 md:mb-16 md:flex-row md:items-end">
           <div>

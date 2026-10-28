@@ -1,23 +1,37 @@
 import Link from "next/link";
+import { Fragment } from "react";
 import { ArrowRight, Check, X } from "lucide-react";
 import { LogoMark, Wordmark } from "./Navbar";
 import { Reveal, SectionLabel } from "./Reveal";
 
-const journey = [
+// What a client gains, beyond the deliverable. The first one leads, in burgundy.
+const advantages = [
   {
-    stage: "Before",
-    label: "01. Scattered work",
-    text: "Spreadsheets, inboxes, and disconnected marketing channels slow down decisions.",
+    tag: "One team",
+    title: "A whole team for the price of one vendor",
+    text: "Strategy, design, engineering, ads and support under one roof, owning the result together. No briefing three agencies, and no finger-pointing when something breaks.",
+    roles: ["Strategy", "Design", "Engineering", "Growth", "Support"],
   },
   {
-    stage: "With us",
-    label: "02. One connected system",
-    text: "We centralize your web presence, CRM pipelines, and digital ads into one workflow.",
+    tag: "Compounding",
+    title: "Systems that get stronger together",
+    text: "Your site, CRM and ads share one source of truth, so every piece we add makes the others work harder.",
+    flow: ["Website", "CRM", "Ads"],
   },
   {
-    stage: "After",
-    label: "03. Visible growth",
-    text: "Complete pipeline visibility, clear customer status, and direct revenue reporting.",
+    tag: "Measurable",
+    title: "Spend you can trace",
+    text: "Every lead is tracked from the ad that brought it in to the deal it closed.",
+  },
+  {
+    tag: "Certain",
+    title: "A price that doesn’t move",
+    text: "The whole job is scoped up front and given one fixed number. No hourly meter.",
+  },
+  {
+    tag: "Yours",
+    title: "Everything stays yours",
+    text: "Code, data, domain and ad accounts in your name, whether we work together for a month or ten years.",
   },
 ];
 
@@ -63,36 +77,66 @@ export function WhyUs() {
         <Reveal className="mb-16 max-w-3xl">
           <SectionLabel tone="burgundy">Why Celestial</SectionLabel>
           <h2 className="mt-4 font-display text-4xl font-semibold leading-[1.05] tracking-[-0.025em] text-burgundy md:text-6xl">
-            Others sell you parts. We build the <span className="text-shine">whole</span> system.
+            Your competitors hire vendors. You get an <span className="text-shine">unfair advantage.</span>
           </h2>
           <p className="mt-6 max-w-xl text-ink/65">
-            Most agencies stop at a single deliverable. We take your business from scattered tools to one
-            connected engine you can actually see working.
+            Most agencies stop at a single deliverable. Working with us changes how your whole business runs, and
+            that edge keeps growing long after launch.
           </p>
         </Reveal>
 
-        {/* Before → with us → after */}
-        <div className="relative grid gap-10 md:grid-cols-3 md:gap-6">
-          <div className="pointer-events-none absolute left-0 right-0 top-[7px] hidden h-px bg-gradient-to-r from-taupe/60 via-burgundy to-burgundy/40 md:block" />
-
-          {journey.map((p, i) => {
-            const active = i === 1;
+        {/* Advantages */}
+        <div className="grid gap-4 md:grid-cols-6">
+          {advantages.map((a, i) => {
+            const lead = i === 0;
             return (
-              <Reveal key={p.label} delay={i * 0.1} className="relative md:pt-10">
-                <span
-                  className={`absolute left-0 top-0 hidden h-[15px] w-[15px] rounded-full border-2 md:block ${
-                    active ? "border-burgundy bg-burgundy shadow-[0_0_0_6px_rgba(86,18,38,0.12)]" : "border-taupe bg-paper"
+              <Reveal
+                key={a.tag}
+                delay={Math.min(i, 3) * 0.08}
+                className={lead ? "md:col-span-6 lg:col-span-4" : i === 1 ? "md:col-span-6 lg:col-span-2" : "md:col-span-2"}
+              >
+                <article
+                  className={`flex h-full flex-col rounded-[22px] p-7 md:p-8 ${
+                    lead
+                      ? "bg-burgundy-rich text-paper shadow-[0_40px_80px_-40px_rgba(54,10,22,0.7)]"
+                      : "border border-taupe-light bg-cream/40"
                   }`}
-                />
-                <div className={`border-l py-2 pl-6 ${active ? "border-burgundy/50" : "border-taupe/50"}`}>
-                  <span className="mb-3 block text-[10px] uppercase tracking-[0.2em] text-taupe">{p.stage}</span>
+                >
                   <span
-                    className={`mb-2 block text-xs uppercase tracking-widest ${active ? "text-burgundy" : "text-taupe-dark"}`}
+                    className={`text-[10px] uppercase tracking-[0.2em] ${lead ? "text-rose" : "text-taupe-dark"}`}
                   >
-                    {p.label}
+                    {String(i + 1).padStart(2, "0")} · {a.tag}
                   </span>
-                  <p className="leading-relaxed text-ink/80">{p.text}</p>
-                </div>
+                  <h3
+                    className={`mt-6 font-display font-semibold tracking-[-0.02em] ${
+                      lead ? "max-w-md text-3xl leading-[1.08] text-paper md:text-[2.5rem]" : "text-xl leading-snug text-ink"
+                    }`}
+                  >
+                    {a.title}
+                  </h3>
+                  <p className={`mt-3 text-sm leading-relaxed ${lead ? "max-w-lg text-paper/70 md:text-base" : "text-ink/65"}`}>
+                    {a.text}
+                  </p>
+                  {a.flow && (
+                    <div aria-hidden className="mt-auto flex items-center pt-8">
+                      {a.flow.map((n, j) => (
+                        <Fragment key={n}>
+                          {j > 0 && <span className="h-px flex-1 bg-gradient-to-r from-burgundy/35 to-taupe/60" />}
+                          <span className="rounded-full border border-taupe-light bg-paper px-3.5 py-1.5 text-xs text-ink/75">{n}</span>
+                        </Fragment>
+                      ))}
+                    </div>
+                  )}
+                  {a.roles && (
+                    <ul className="mt-auto flex flex-wrap gap-2 pt-8">
+                      {a.roles.map((r) => (
+                        <li key={r} className="rounded-full border border-paper/20 bg-paper/[0.08] px-3.5 py-1.5 text-xs text-paper/85">
+                          {r}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </article>
               </Reveal>
             );
           })}
