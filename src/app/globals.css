@@ -188,6 +188,24 @@ body {
   filter: none;
 }
 
+/* About answer (components/About.tsx): each word starts faint and inks in over
+   its own slice of the paragraph's scroll range (--a to --b, set per word). The
+   headline above it flies in from script (components/about/FlyInHeading.tsx). */
+@keyframes ink-in {
+  from { opacity: 0.14; }
+  to { opacity: 1; }
+}
+@supports (animation-timeline: view()) {
+  .ink-words {
+    view-timeline: --ink block;
+  }
+  .ink-words > span {
+    animation: ink-in linear both;
+    animation-timeline: --ink;
+    animation-range: cover var(--a) cover var(--b);
+  }
+}
+
 /* Notebook binder (components/notebook). Its root is a size container and
    everything inside is measured in book units of 0.1cqw. Ruled-line spacing and
    the handwriting grow on narrow binders so phones can still read the notes. */
@@ -278,6 +296,9 @@ body {
   .js .nb-go .nb-write .nb-stroke path {
     stroke-dashoffset: 0;
     transition: none;
+  }
+  .ink-words > span {
+    animation: none;
   }
   *,
   *::before,
