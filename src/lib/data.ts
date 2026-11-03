@@ -18,6 +18,9 @@ export const CONTACT = {
   },
 };
 
+// Canonical origin, used for structured data, robots.txt and the sitemap
+export const SITE_URL = "https://www.celestialdevelopers.com";
+
 // Team inbox shown in the FAQ section
 export const TEAM_EMAIL = CONTACT.email;
 
