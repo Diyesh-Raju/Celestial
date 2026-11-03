@@ -29,7 +29,7 @@ export function Footer({ bleed = false }: { bleed?: boolean }) {
           }}
         />
       )}
-      {/* Orbit rings + taupe glow. With `bleed` the rings start below the fade and
+      {/* Orbit rings. With `bleed` the rings start below the fade and
           run up into it, rather than being cut off at the footer's top edge */}
       <div className={`pointer-events-none absolute inset-x-0 bottom-0 ${bleed ? "top-56 md:top-80" : "top-0"}`}>
         <div className="absolute -right-64 -top-64 h-[640px] w-[640px] rounded-full border border-white/20" />
@@ -38,7 +38,6 @@ export function Footer({ bleed = false }: { bleed?: boolean }) {
       {/* Same rings, mirrored into the bottom-left corner */}
       <div className="pointer-events-none absolute -bottom-64 -left-64 h-[640px] w-[640px] rounded-full border border-white/20" />
       <div className="pointer-events-none absolute -bottom-40 -left-40 h-[400px] w-[400px] rounded-full border border-dashed border-white/30" />
-      <div className="pointer-events-none absolute -bottom-64 -left-40 h-[500px] w-[700px] rounded-full bg-taupe/20 blur-[120px]" />
 
       {/* Oversized name, only a shade lighter than the background */}
       <p
