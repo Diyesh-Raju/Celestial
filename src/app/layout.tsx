@@ -29,10 +29,11 @@ const anton = Anton({
   subsets: ["latin"],
 });
 
-// Wordmark face ("CELESTIAL DEVELOPERS"), see --font-brand
+// Wordmark face ("CELESTIAL DEVELOPERS"), see --font-brand. The light cut sets
+// the "Growth, engineered." banner (components/Studio.tsx).
 const montserrat = Montserrat({
   variable: "--font-montserrat",
-  weight: "400",
+  weight: ["300", "400"],
   subsets: ["latin"],
 });
 

@@ -5,6 +5,8 @@ import { Hero } from "@/components/Hero";
 import { Process } from "@/components/Process";
 import { Reviews } from "@/components/Reviews";
 import { Services } from "@/components/Services";
+import { SlideOver } from "@/components/SlideOver";
+import { Studio } from "@/components/Studio";
 import { WhyUs } from "@/components/WhyUs";
 
 export default function Home() {
@@ -12,7 +14,10 @@ export default function Home() {
     <div className="min-h-screen bg-paper text-ink">
       <main>
         <Hero />
-        <About />
+        {/* The Studio banner rises over the bottom of About (desktop) */}
+        <SlideOver under={<About />}>
+          <Studio />
+        </SlideOver>
         <WhyUs />
         <Services />
         <Process />

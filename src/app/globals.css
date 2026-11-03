@@ -206,6 +206,225 @@ body {
   }
 }
 
+/* Studio banner (components/Studio.tsx). Phones and portrait tablets get a plain
+   column, styled with utilities in the component. On landscape screens from lg
+   up (keep in step with DESKTOP in Studio.tsx) the banner is one full-screen picture
+   laid out here in --u (1vh, or less on tall narrow windows); these unlayered
+   rules override the phone utilities. On .js pages the section also becomes a
+   tall track that the stage pins inside while the camera pulls back. */
+.studio-bg {
+  background:
+    radial-gradient(60% 75% at 10% 20%, rgba(70, 8, 18, 0.85) 0%, rgba(45, 4, 11, 0.55) 40%, transparent 72%),
+    radial-gradient(45% 45% at 38% 0%, rgba(55, 5, 14, 0.5) 0%, transparent 70%),
+    linear-gradient(180deg, transparent 55%, rgba(0, 0, 0, 0.35) 100%),
+    #0d0204;
+}
+/* Beige, catching the light on "ENG", cooling to rose-taupe */
+.studio-title {
+  background: linear-gradient(90deg, #d4bcab 0%, #e6d7c9 36%, #fbf4ec 50%, #cfaba2 62%, #b98e88 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+@media (min-width: 64rem) and (orientation: landscape) {
+  .studio-stage {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: hidden;
+  }
+  .studio-banner {
+    --u: min(1vh, 0.6vw);
+    position: absolute;
+    inset: 0;
+    display: block;
+    min-height: 0;
+    padding: 0;
+    overflow: visible;
+    transform-origin: 0 0;
+  }
+  .studio-bg,
+  .studio-glass {
+    transform-origin: 0 0;
+  }
+  .studio-left,
+  .studio-center,
+  .studio-right {
+    position: absolute;
+    inset: 0;
+  }
+  /* Its right edge is the banner's, so the emblem is cut off there */
+  .studio-right {
+    overflow: hidden;
+  }
+  .studio-brand {
+    position: absolute;
+    transform-origin: 0 50%;
+    left: calc(var(--u) * 8.5);
+    top: calc(var(--u) * 7.6);
+    gap: calc(var(--u) * 1.8);
+  }
+  .studio-mark {
+    width: calc(var(--u) * 6.3);
+    height: calc(var(--u) * 6.3);
+  }
+  .studio-wordmark {
+    font-size: calc(var(--u) * 2.05);
+  }
+  .studio-rule {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 89.6%;
+    width: calc(var(--u) * 30);
+    height: 1px;
+    background: linear-gradient(90deg, rgba(122, 35, 64, 0.1), #8f4250 60%, transparent);
+  }
+  .studio-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: calc(var(--u) * 15) 0 calc(var(--u) * 13);
+  }
+  .studio-title span {
+    display: inline;
+  }
+  .studio-title {
+    font-size: calc(var(--u) * 5.6);
+    letter-spacing: 0.2em;
+    white-space: nowrap;
+  }
+  .studio-sub {
+    margin-top: calc(var(--u) * 3.2);
+    font-size: calc(var(--u) * 1.6);
+    max-width: none;
+  }
+  .studio-cards {
+    margin-top: calc(var(--u) * 7);
+    width: min(68rem, calc(var(--u) * 150), 84vw);
+    max-width: none;
+  }
+  .studio-cards > ul {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  .studio-thread {
+    display: block;
+    position: absolute;
+    inset: 50% 0 auto;
+    height: 1px;
+    background: rgba(232, 224, 216, 0.1);
+  }
+  .studio-cue {
+    display: flex;
+    position: absolute;
+    left: 50%;
+    top: 83.5%;
+    gap: calc(var(--u) * 1.4);
+    font-size: calc(var(--u) * 1.3);
+    transform: translateX(-50%);
+  }
+  .studio-cue-track {
+    height: calc(var(--u) * 4.5);
+  }
+  .studio-emblem {
+    top: 44.9%;
+    right: calc(var(--u) * -21);
+    width: calc(var(--u) * 58.4);
+    max-width: none;
+    opacity: 1;
+    transform: translateY(-50%);
+  }
+  .studio-signoff {
+    position: absolute;
+    transform-origin: 100% 50%;
+    right: calc(var(--u) * 8);
+    top: 89.4%;
+    gap: calc(var(--u) * 1.6);
+    padding: 0;
+    font-size: calc(var(--u) * 1.4);
+    transform: translateY(-50%);
+  }
+  .studio-glass {
+    display: block;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    background:
+      linear-gradient(118deg, rgba(255, 240, 235, 0.06) 0%, transparent 35%),
+      radial-gradient(120% 140% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.3) 100%),
+      rgba(10, 2, 4, 0.16);
+  }
+}
+@media (min-width: 64rem) and (orientation: landscape) and (prefers-reduced-motion: no-preference) {
+  .js .studio {
+    height: 420vh;
+  }
+  /* Only where the zoom runs, so nobody else downloads the photo */
+  .js .studio-room {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1536px;
+    height: 864px;
+    transform-origin: 0 0;
+    visibility: hidden;
+  }
+}
+/* Slide-over (components/SlideOver.tsx). While the covering section's top climbs
+   the screen (its entry range: exactly one screen of scroll) the section under it
+   is pushed down by the same amount, so it holds still as it is covered, and
+   dims. A scroll-driven transform rather than position: sticky, because sticky
+   would stretch the view timelines inside it (the About answer's word-by-word
+   inking) across the whole hold. */
+@keyframes slide-over-hold {
+  from { transform: translateY(0); }
+  to { transform: translateY(100vh); }
+}
+@keyframes slide-over-dim {
+  from { opacity: 0; }
+  to { opacity: 0.45; }
+}
+@supports (animation-timeline: view()) {
+  @media (min-width: 64rem) and (orientation: landscape) and (prefers-reduced-motion: no-preference) {
+    .slide-over {
+      timeline-scope: --cover;
+    }
+    .slide-over-cover {
+      view-timeline: --cover block;
+      box-shadow: 0 -40px 80px -30px rgba(11, 2, 3, 0.4);
+    }
+    .slide-over-under,
+    .slide-over-dim {
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: --cover;
+      animation-range: entry 0% entry 100%;
+    }
+    .slide-over-under {
+      animation-name: slide-over-hold;
+      /* Empty room under the held section, so the cover crosses it first and
+         the section's last lines stay readable for a while longer */
+      padding-bottom: 40vh;
+    }
+    /* Only the screen-high strip that shows while it is held */
+    .slide-over-dim {
+      display: block;
+      height: 100vh;
+      background: #0b0203;
+      animation-name: slide-over-dim;
+    }
+  }
+}
+
+/* The navbar slides away while the banner is pinned (set by Studio.tsx) */
+html[data-nav-hidden] .site-header {
+  transform: translateY(-100%);
+}
+
 /* Notebook binder (components/notebook). Its root is a size container and
    everything inside is measured in book units of 0.1cqw. Ruled-line spacing and
    the handwriting grow on narrow binders so phones can still read the notes. */

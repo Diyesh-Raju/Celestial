@@ -247,7 +247,7 @@ export function Navbar() {
   return (
     <>
       <header
-        className={`fixed inset-x-0 top-0 z-50 border-b backdrop-blur-xl backdrop-saturate-150 transition-[background-color,border-color,box-shadow] duration-500 ${
+        className={`site-header fixed inset-x-0 top-0 z-50 border-b backdrop-blur-xl backdrop-saturate-150 transition-[background-color,border-color,box-shadow,transform] duration-500 ${
           scrolled
             ? "border-paper/10 bg-burgundy-deep/70 shadow-[0_10px_40px_-20px_rgba(20,3,8,0.6)]"
             : "border-paper/15 bg-paper/[0.06]"
