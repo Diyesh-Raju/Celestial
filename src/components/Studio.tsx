@@ -46,20 +46,22 @@ const points = [
 ];
 
 /* The studio photo (public/studio/room.webp) and its monitor's screen, measured in
-   the photo's own pixels. The camera sees the monitor at a slight angle, so the
-   screen is a trapezoid: its right edge is further away and shorter. */
-const ROOM_W = 1536;
-const ROOM_H = 864;
+   the photo's own pixels. The file is stored at 2x (3200x1800) so it stays sharp on
+   retina screens and through the zoom; these numbers are its 1x frame. The camera
+   sees the monitor at a slight angle, so the screen is a trapezoid: its right edge
+   is further away and shorter. */
+const ROOM_W = 1600;
+const ROOM_H = 900;
 const SCREEN: Quad = [
-  [522, 321],
-  [968.5, 327],
-  [968.5, 469.5],
-  [522, 499.5],
+  [543.5, 333.5],
+  [1009.5, 339],
+  [1009.5, 488.5],
+  [543.5, 523.5],
 ];
 const SCREEN_W = SCREEN[1][0] - SCREEN[0][0];
 /* Where public/studio/screen.webp sits in the photo: this same screen once the
    banner has landed, pre-rendered at 3x so its small type stays sharp at rest */
-const SCREEN_IMG = { x: 521, y: 320, w: 449, h: 181 };
+const SCREEN_IMG = { x: 542, y: 332, w: 469, h: 193 };
 const SCREEN_MID: Pt = [(SCREEN[0][0] + SCREEN[1][0]) / 2, (SCREEN[0][1] + SCREEN[1][1] + SCREEN[2][1] + SCREEN[3][1]) / 4];
 /** Width-to-height of the banner once it is on the monitor. */
 const SCREEN_ASPECT = 2.75;
