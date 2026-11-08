@@ -1,22 +1,27 @@
 import { Database, MonitorSmartphone, TrendingUp, Workflow } from "lucide-react";
+import Image from "next/image";
 import { Fragment, type CSSProperties } from "react";
-import { FlyInHeading } from "./about/FlyInHeading";
+import { WhatWeDo } from "./about/WhatWeDo";
 import { Reveal } from "./Reveal";
 
-// The answer under the fly-in headline. Accent phrases land in burgundy.
-const answer = [
+// The statement beside the photo. Accent phrases land in burgundy.
+const statement = [
   { text: "We are a" },
-  { text: "B2B custom software and growth studio.", accent: true },
-  { text: "We design, build and grow digital products for" },
+  { text: "B2B bespoke software development & growth studio.", accent: true },
+  { text: "We design, build and grow digital products and systems for" },
   { text: "industry leaders,", accent: true },
-  { text: "and the connected systems that keep them a step ahead." },
+  {
+    text: "from fast websites and storefronts to custom CRMs, automations and ad systems. One senior team of strategists, designers, engineers and growth marketers, based in India and working with clients everywhere, treats it all as",
+  },
+  { text: "one connected system,", accent: true },
+  { text: "and we stay on after launch, because that is when the real growth starts." },
 ];
 
 // One span per word; each darkens over its own slice of the scroll (see .ink-words in globals.css)
-const answerWords = answer.flatMap((s) => s.text.split(" ").map((w) => ({ w, accent: s.accent })));
+const statementWords = statement.flatMap((s) => s.text.split(" ").map((w) => ({ w, accent: s.accent })));
 const INK_FROM = 6; // % of the paragraph's cover range where the first word starts
-const INK_TO = 44; // ...and where the last word finishes
-const inkStep = (INK_TO - INK_FROM) / answerWords.length;
+const INK_TO = 46; // ...and where the last word finishes
+const inkStep = (INK_TO - INK_FROM) / statementWords.length;
 
 // What we build, each paired with the standard it ships with
 const builds = [
@@ -51,28 +56,33 @@ const builds = [
 export function About() {
   return (
     // overflow-clip, not hidden: a hidden section becomes its own scroll container and
-    // the scroll-driven answer would follow it instead of the page
+    // the scroll-driven statement would follow it instead of the page
     <section id="about" className="relative scroll-mt-24 overflow-clip px-6 py-24 md:py-32">
       <div className="pointer-events-none absolute -left-40 top-24 h-[420px] w-[620px] rounded-full bg-burgundy/[0.05] blur-[120px]" />
 
       <div className="relative mx-auto max-w-6xl">
-        {/* The question: each half flies in from its own side while the "&" holds still */}
-        <FlyInHeading className="text-center font-display text-[clamp(3rem,12.5vw,6.5rem)] font-semibold leading-[0.95] tracking-[-0.045em] text-burgundy">
-          <span data-fly="left" className="block">
-            Who we are
-          </span>
-          <span className="block py-[0.04em] font-extralight leading-[0.9] tracking-normal">
-            <span className="text-shine pr-[0.04em]">&amp;</span>
-          </span>
-          <span data-fly="right" className="block">
-            what we build
-          </span>
-        </FlyInHeading>
+        {/* What we do: the studio in one line, as 3D lettering */}
+        <WhatWeDo />
 
-        {/* The answer: darkens word by word as it scrolls up */}
-        <div className="mx-auto mt-16 max-w-4xl text-center md:mt-24">
-          <p className="ink-words text-balance font-display text-[1.6rem] font-medium leading-[1.2] tracking-[-0.02em] text-ink sm:text-3xl md:text-[2.4rem]">
-            {answerWords.map(({ w, accent }, i) => {
+        {/* Photo on the left, the statement on the right */}
+        <div className="mt-20 grid items-center gap-10 md:mt-28 md:grid-cols-[minmax(0,4fr)_minmax(0,7fr)] lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16">
+          {/* Portrait photo (1024x1536), cropped to 4:5; the key stays whole */}
+          <Reveal>
+            <div className="aspect-[4/5] w-full overflow-hidden rounded-[1.75rem] border border-taupe-light bg-burgundy-deep shadow-[0_40px_80px_-50px_rgba(54,10,22,0.45)]">
+              <Image
+                src="/about/key.webp"
+                alt="A gold key resting on burgundy velvet beside an embossed card"
+                width={1024}
+                height={1536}
+                unoptimized
+                className="h-full w-full object-cover"
+              />
+            </div>
+          </Reveal>
+
+          {/* Darkens word by word as it scrolls up */}
+          <p className="ink-words font-display text-[1.45rem] font-medium leading-[1.3] tracking-[-0.02em] text-ink sm:text-[1.65rem] md:text-[1.35rem] lg:text-[1.85rem]">
+            {statementWords.map(({ w, accent }, i) => {
               const a = INK_FROM + i * inkStep;
               return (
                 <Fragment key={i}>
@@ -87,13 +97,6 @@ export function About() {
               );
             })}
           </p>
-          <Reveal delay={0.1}>
-            <p className="mx-auto mt-8 max-w-2xl leading-relaxed text-ink/65 md:mt-10 md:text-lg">
-              One senior team of strategists, designers, engineers and growth marketers, based in India and
-              working with clients everywhere. We treat your website, CRM, automations and ads as one system,
-              and we stay on after launch, because that is when the real growth starts.
-            </p>
-          </Reveal>
         </div>
 
         {/* What we build, in practice, with the standard each one ships with */}
