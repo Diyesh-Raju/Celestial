@@ -1,8 +1,8 @@
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import { paintScreen, PHONE_H, PHONE_W } from "./screens";
+import { PHONE_H, PHONE_W, type PaintScreen } from "./paint";
 import { deviceLayout, type Device } from "./theme";
-import { LOGO_PATH } from "@/lib/logo";
+import { logoTexture, sheenTexture, whenIdle } from "./threeKit";
 
 // A MacBook and an iPhone built from primitives (no model files to download),
 // posed purely from scroll position — stop scrolling and it stops exactly
@@ -10,8 +10,10 @@ import { LOGO_PATH } from "@/lib/logo";
 //   intro → 01  lid opens, screen powers on, laptop glides to its side
 //   01 → 02 …   the device flies across with a full turn. Mid-turn it shrinks
 //               away (the laptop folding shut as it goes) and the other device
-//               grows out of the same point: odd capabilities are the laptop,
-//               even ones the phone
+//               grows out of the same point: odd steps are the laptop, even
+//               ones the phone
+// Used by both scroll stories (capabilities and why us); each brings its own
+// number of steps and its own screens.
 // The caller owns the animation loop and calls render(position) each frame.
 
 // Model dimensions (world units at scale 1)
@@ -50,18 +52,10 @@ const smooth = (a: number, b: number, v: number) => {
 /** Angle wrapped to (-π, π]. */
 const wrap = (a: number) => a - TAU * Math.floor((a + Math.PI) / TAU);
 
-/** Waits until the browser is idle, so setup runs between frames instead of stalling the page. */
-const whenIdle = () =>
-  new Promise<void>((resolve) =>
-    "requestIdleCallback" in window
-      ? requestIdleCallback(() => resolve(), { timeout: 300 })
-      : requestAnimationFrame(() => setTimeout(resolve, 0)),
-  );
-
 type Pose = { device: Device; x: number; y: number; s: number; yaw: number; tilt: number; open: number };
 
 export type SceneApi = {
-  /** Draw the scene at `position`: 0 = intro, 1–6 = capability, fractions = in between. */
+  /** Draw the scene at `position`: 0 = intro, 1…steps = a step, fractions = in between. */
   render: (position: number, now: number) => void;
   dispose: () => void;
 };
@@ -71,6 +65,10 @@ export type SceneOptions = {
   /** The canvas's WebGL2 context, already created (the caller checks for support with it). */
   context: WebGL2RenderingContext;
   reduced: boolean;
+  /** Number of steps after the intro. */
+  steps: number;
+  /** Paints step i's display (1-based). */
+  paint: PaintScreen;
 };
 
 function roundedRect(w: number, h: number, r: number) {
@@ -138,37 +136,6 @@ function radialTexture(inner: string, outer: string) {
   return tex;
 }
 
-/** A faint diagonal glare band, baked so the screen glass can never wash out the display. */
-function sheenTexture() {
-  const c = document.createElement("canvas");
-  c.width = c.height = 256;
-  const ctx = c.getContext("2d")!;
-  const g = ctx.createLinearGradient(0, 0, 256, 256);
-  g.addColorStop(0, "rgba(255,255,255,0.10)");
-  g.addColorStop(0.32, "rgba(255,255,255,0.05)");
-  g.addColorStop(0.38, "rgba(255,255,255,0.09)");
-  g.addColorStop(0.46, "rgba(255,255,255,0.02)");
-  g.addColorStop(1, "rgba(255,255,255,0)");
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, 256, 256);
-  const tex = new THREE.CanvasTexture(c);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  return tex;
-}
-
-/** The Celestial Developers mark as an alpha mask. */
-function logoTexture() {
-  const c = document.createElement("canvas");
-  c.width = c.height = 512;
-  const ctx = c.getContext("2d")!;
-  ctx.fillStyle = "#000";
-  ctx.fillRect(0, 0, 512, 512);
-  ctx.scale(512 / 48, 512 / 48);
-  ctx.fillStyle = "#fff";
-  ctx.fill(new Path2D(LOGO_PATH));
-  return new THREE.CanvasTexture(c);
-}
-
 function buildKeyboard(material: THREE.Material) {
   // Key widths in units; every row adds up to 15
   const rows = [
@@ -212,7 +179,7 @@ function buildKeyboard(material: THREE.Material) {
  * lighting, screen textures and shader compiles together would otherwise block
  * the page for a noticeable moment), resolving once it's ready to draw.
  */
-export async function createMacbookScene({ canvas, context, reduced }: SceneOptions): Promise<SceneApi> {
+export async function createMacbookScene({ canvas, context, reduced, steps, paint }: SceneOptions): Promise<SceneApi> {
   const host = canvas.parentElement!;
   const renderer = new THREE.WebGLRenderer({ canvas, context, antialias: true, alpha: true, powerPreference: "high-performance" });
   renderer.setClearColor(0x000000, 0);
@@ -265,7 +232,7 @@ export async function createMacbookScene({ canvas, context, reduced }: SceneOpti
   // Each display is painted and uploaded once while the browser is idle (see
   // warm() below), so switching screens mid-flight costs nothing.
   // screenTexture() paints one on the spot if it's needed sooner.
-  const screenTex: (THREE.CanvasTexture | null)[] = Array(6).fill(null);
+  const screenTex: (THREE.CanvasTexture | null)[] = Array(steps).fill(null);
   // Screens painted before the web fonts arrived, repainted once they do
   const stale = new Set<number>();
   let disposed = false;
@@ -273,7 +240,7 @@ export async function createMacbookScene({ canvas, context, reduced }: SceneOpti
     if (disposed) return;
     stale.forEach((i) => {
       const tex = screenTex[i]!;
-      paintScreen(i + 1, tex.image as HTMLCanvasElement);
+      paint(i + 1, tex.image as HTMLCanvasElement);
       tex.needsUpdate = true;
     });
     stale.clear();
@@ -281,7 +248,7 @@ export async function createMacbookScene({ canvas, context, reduced }: SceneOpti
   const screenTexture = (i: number) => {
     const ready = screenTex[i];
     if (ready) return ready;
-    const tex = new THREE.CanvasTexture(paintScreen(i + 1));
+    const tex = new THREE.CanvasTexture(paint(i + 1));
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
     renderer.initTexture(tex);
@@ -511,8 +478,8 @@ export async function createMacbookScene({ canvas, context, reduced }: SceneOpti
     const time = now / 1000;
 
     // Segment k → k+1, t = how far along
-    const p = Math.min(6, Math.max(0, position));
-    const k = Math.min(5, Math.floor(p));
+    const p = Math.min(steps, Math.max(0, position));
+    const k = Math.min(steps - 1, Math.floor(p));
     const t = p - k;
     const A = restPose(k);
     const B = restPose(k + 1);
@@ -551,7 +518,7 @@ export async function createMacbookScene({ canvas, context, reduced }: SceneOpti
     const yaw = yaw0 + (idle + pointer.sx * 0.1) * motion;
     target.rotation.set(lerp(A.tilt, B.tilt, e) + pointer.sy * 0.05 * motion, yaw, 0);
 
-    // Which capability the visible device shows
+    // Which step the visible device shows
     const shown = k === 0 ? 1 : swap ? (incoming ? k + 1 : k) : t < 0.5 ? k : k + 1;
 
     if (showLaptop) {

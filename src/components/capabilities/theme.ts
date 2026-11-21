@@ -44,6 +44,16 @@ export const palettes: StepPalette[] = [
   { bg: "#76635a", ...darkText }, // 06 CTO — dark taupe
 ];
 
+// Why us: dark and light alternate so every turn of the device lands on a fresh
+// colour, and the run never repeats the capabilities' sequence that follows it.
+export const whyUsPalettes: StepPalette[] = [
+  { bg: "#e8e0d8", ...lightText }, // intro — the site's paper
+  { bg: "#3f0d1c", ...darkText }, // 01 One roof — deep burgundy
+  { bg: "#faf7f2", ...lightText }, // 02 Built for you — white
+  { bg: "#221713", ...darkText }, // 03 Artists — espresso
+  { bg: "#e7d3ca", ...lightText, muted: "#5f5049" }, // 04 Partner — blush
+];
+
 /** Colour of the leading ring on the background wipe. */
 export const WIPE_RIM = "#7a2340";
 

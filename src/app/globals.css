@@ -187,6 +187,11 @@ body {
   transform: none;
   filter: none;
 }
+/* During the logo's glide back to the top (Navbar.tsx), anything revealed on the way
+   just appears: it is on screen for a few frames, not worth a blur transition each. */
+.js.gliding [data-reveal] {
+  transition: none;
+}
 
 /* About statement (components/About.tsx): each word starts faint and inks in over
    its own slice of the paragraph's scroll range (--a to --b, set per word). */
@@ -203,6 +208,37 @@ body {
     animation-timeline: --ink;
     animation-range: cover var(--a) cover var(--b);
   }
+}
+
+/* Products & services (components/Services.tsx, services/Visuals.tsx). Lines marked
+   .svc-draw (pathLength="1") draw themselves in once their Reveal turns visible, and
+   .svc-fade parts follow; without JS they are simply there. .svc-flow is the data
+   running along the automation card's links. */
+.js .svc-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 1.6s cubic-bezier(0.65, 0, 0.35, 1) calc(var(--delay, 0s) + 0.35s);
+}
+.js .svc-fade {
+  opacity: 0;
+  transition: opacity 0.8s ease calc(var(--delay, 0s) + 1.5s);
+}
+.js [data-reveal].is-visible .svc-draw,
+.reveal-all .svc-draw {
+  stroke-dashoffset: 0;
+}
+.js [data-reveal].is-visible .svc-fade,
+.reveal-all .svc-fade {
+  opacity: 1;
+}
+@keyframes svc-flow {
+  to {
+    stroke-dashoffset: -18;
+  }
+}
+.svc-flow {
+  stroke-dasharray: 3 6;
+  animation: svc-flow 1.4s linear infinite;
 }
 
 /* "What we do" heading (components/about/WhatWeDo.tsx): solid 3D lettering. Each
@@ -1207,6 +1243,15 @@ html[data-nav-hidden] .site-header {
   }
   .ink-words > span {
     animation: none;
+  }
+  .svc-flow {
+    animation: none;
+  }
+  .js .svc-draw,
+  .js .svc-fade {
+    stroke-dashoffset: 0;
+    opacity: 1;
+    transition: none;
   }
   .w3d :is(.w3d-word, .w3d-word > *, .w3d-dash, .lap, .lap-lid, .lap-off, .lap-leaf, .sales, .sales-leaf, .sales-chart *) {
     animation: none;

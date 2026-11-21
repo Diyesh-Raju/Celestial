@@ -168,7 +168,9 @@ export function Hero() {
       const raw = (now - last) / 1000;
       last = now;
       const dt = Math.min(raw, 0.05);
-      if (!lite && judged < 60) {
+      // Frames during the logo's glide back up (Navbar.tsx) say nothing about the
+      // device, and switching to lite mid-glide would itself cost a long frame.
+      if (!lite && judged < 60 && !document.documentElement.classList.contains("gliding")) {
         judged += 1;
         if (judged > 5 && raw > SLOW_FRAME_S) slow += 1;
         if (slow >= SLOW_FRAMES) {

@@ -129,6 +129,77 @@ export const services = [
   },
 ] as const;
 
+// Why us: four reasons, told on the laptop (01, 03) and the phone (02, 04) in turn
+export const advantages = [
+  {
+    num: "01",
+    short: "One roof",
+    title: "Full-scale marketing, under one roof",
+    desc: "We take care of it all: website development, CRM systems, Meta Ads, cybersecurity and bespoke tech.",
+    icon: "roof",
+    tags: ["One team", "One point of contact", "One connected system", "Nothing lost between vendors"],
+  },
+  {
+    num: "02",
+    short: "Built for you",
+    title: "Built around your business",
+    desc: "No generic products or off-the-shelf packages. Every system is custom built for how you work, so you grow faster.",
+    icon: "custom",
+    tags: ["Custom built", "Shaped to your workflow", "No templates", "Faster results"],
+  },
+  {
+    num: "03",
+    short: "Artists + AI",
+    title: "More than developers. We’re artists.",
+    desc: "Software that’s effortless to navigate and runs like a machine, with agentic AI pushed to its limits for you.",
+    icon: "craft",
+    tags: ["Crafted design", "Effortless to use", "Agentic AI", "Runs like a machine"],
+  },
+  {
+    num: "04",
+    short: "Partnership",
+    title: "A partner long after launch",
+    desc: "We don’t hand over and disappear. The same team stays on to support, improve and grow what we built together.",
+    icon: "partner",
+    tags: ["Ongoing support", "Always improving", "You own everything", "A direct line to us"],
+  },
+] as const;
+
+// Celestial vs. a typical agency: shown on the foldable phone under "Why us"
+// (open: both sides; closed: only ours on the cover screen)
+export const comparison = [
+  {
+    topic: "Scope",
+    them: "One piece at a time: a site, or ads, or a CRM",
+    us: "Website, CRM, ads and automation built as one system",
+  },
+  {
+    topic: "Your leads",
+    them: "Scattered across inboxes and spreadsheets",
+    us: "Every lead in one pipeline, with a clear status",
+  },
+  {
+    topic: "Reporting",
+    them: "Clicks and impressions that never reach revenue",
+    us: "Ad spend traced straight through to closed deals",
+  },
+  {
+    topic: "Accountability",
+    them: "Three vendors, three invoices, plenty of finger-pointing",
+    us: "One team owns it end to end, from strategy to support",
+  },
+  {
+    topic: "Delivery",
+    them: "A big reveal at the end, surprises included",
+    us: "Working software throughout, with visible progress",
+  },
+  {
+    topic: "After launch",
+    them: "A handoff, then you’re on your own",
+    us: "Ongoing optimization and CTO-level support",
+  },
+] as const;
+
 // `bg` / `ink`: the slide colour and the giant background name in the Work slider
 export const portfolio = [
   {

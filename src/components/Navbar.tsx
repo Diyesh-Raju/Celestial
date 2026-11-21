@@ -32,9 +32,14 @@ export function Logo({ light = false }: { light?: boolean }) {
 }
 
 /* Navbar brand, set in light taupe so it sits directly on the dark hero */
-function NavBrand() {
+function NavBrand({ onNavigate }: { onNavigate: NavigateHandler }) {
   return (
-    <Link href="/" className="flex items-center gap-2 text-paper sm:gap-3" aria-label="Celestial Developers home">
+    <Link
+      href="/"
+      onNavigate={onNavigate}
+      className="flex items-center gap-2 text-paper sm:gap-3"
+      aria-label="Celestial Developers home"
+    >
       <LogoMark className="h-9 w-9 sm:h-10 sm:w-10" />
       <Wordmark className="text-[17px] sm:text-xl" />
     </Link>
@@ -71,6 +76,48 @@ function jumpTo(hash: string) {
 }
 
 type NavigateHandler = NonNullable<LinkProps["onNavigate"]>;
+
+const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
+
+/* Most of the page a glide ever travels, in screen heights. From further down it
+   starts this far from the top: at that speed the cut doesn't read, and the heavy
+   sections in between (3D devices, pinned scenes) never have to draw a frame. */
+const GLIDE_SPAN = 2.5;
+
+/* Scrolls back to the top on a short glide of our own instead of the browser's smooth
+   scroll, which takes longer the further down you are and drags every section on the
+   way through a frame or two. While it runs, <html> carries .gliding (see globals.css
+   and Hero.tsx). A touch, click or key press from the visitor hands control straight
+   back to them. (Not the wheel: a trackpad's leftover momentum would cancel the
+   glide the moment it starts.) */
+function glideToTop() {
+  if (window.scrollY < 2) return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return jumpTo("");
+
+  const from = Math.min(window.scrollY, window.innerHeight * GLIDE_SPAN);
+  if (from < window.scrollY) window.scrollTo({ top: from, behavior: "instant" });
+
+  const duration = 250 + (from / window.innerHeight) * 120; // ms: one screen ~370ms, the full span ~550ms
+  const root = document.documentElement;
+  const start = performance.now();
+  let frame = 0;
+
+  const finish = () => {
+    cancelAnimationFrame(frame);
+    root.classList.remove("gliding");
+    for (const type of ["touchstart", "mousedown", "keydown"]) window.removeEventListener(type, finish);
+  };
+  const step = (now: number) => {
+    const t = Math.min(1, (now - start) / duration);
+    window.scrollTo({ top: from * (1 - easeOutCubic(t)), behavior: "instant" });
+    if (t < 1) frame = requestAnimationFrame(step);
+    else finish();
+  };
+
+  root.classList.add("gliding");
+  for (const type of ["touchstart", "mousedown", "keydown"]) window.addEventListener(type, finish, { passive: true });
+  frame = requestAnimationFrame(step);
+}
 
 /* Menu motion after the Rolls-Royce menu: the frosted panel drops from the top
    on an out-expo glide (quick start, long soft landing), then the links sweep in
@@ -194,6 +241,14 @@ export function Navbar() {
   const pathname = usePathname();
   // Hash to land on once a cross-page navigation started from the menu commits
   const pendingHash = useRef<string | null>(null);
+  // The navbar logo: on the home page it glides back up to the top; anywhere else
+  // it opens the home page at the top (Next's normal navigation does that).
+  const goHome: NavigateHandler = (e) => {
+    if (window.location.pathname !== "/") return;
+    e.preventDefault();
+    if (window.location.hash) window.history.pushState(null, "", "/");
+    glideToTop();
+  };
 
   // Menu links move the page while the menu still covers it, then the menu lifts
   // (see panelVariants) to reveal wherever the link pointed.
@@ -258,7 +313,7 @@ export function Navbar() {
             scrolled ? "h-16" : "h-20"
           }`}
         >
-          <NavBrand />
+          <NavBrand onNavigate={goHome} />
           <MenuButton onClick={() => setOpen(true)} />
         </nav>
       </header>

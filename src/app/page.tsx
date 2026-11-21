@@ -18,8 +18,8 @@ export default function Home() {
         <SlideOver under={<About />}>
           <Studio />
         </SlideOver>
-        <WhyUs />
         <Services />
+        <WhyUs />
         <Process />
         <Faq />
         <Reviews />

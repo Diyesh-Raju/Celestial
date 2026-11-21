@@ -4,24 +4,31 @@ import { Fragment, type CSSProperties } from "react";
 import { WhatWeDo } from "./about/WhatWeDo";
 import { Reveal } from "./Reveal";
 
-// The statement beside the photo. Accent phrases land in burgundy.
+// The statement beside the photo, in two boxes: the headline, then who we are.
+// Accent phrases land in burgundy.
 const statement = [
-  { text: "We are a" },
-  { text: "B2B bespoke software development & growth studio.", accent: true },
-  { text: "We design, build and grow digital products and systems for" },
-  { text: "industry leaders,", accent: true },
-  {
-    text: "from fast websites and storefronts to custom CRMs, automations and ad systems. One senior team of strategists, designers, engineers and growth marketers, based in India and working with clients everywhere, treats it all as",
-  },
-  { text: "one connected system,", accent: true },
-  { text: "and we stay on after launch, because that is when the real growth starts." },
+  [
+    { text: "We are a" },
+    { text: "B2B bespoke software and growth studio.", accent: true },
+    { text: "We design, build and grow digital products for" },
+    { text: "industry leaders.", accent: true },
+    {
+      text: "We believe great technology should feel effortless to the people who use it. That belief shapes everything we design, build and deliver.",
+    },
+  ],
+  [
+    { text: "From the first sketch to the final launch, we work as an extension of your team." },
+    { text: "Your growth becomes our measure of success.", accent: true },
+  ],
 ];
 
-// One span per word; each darkens over its own slice of the scroll (see .ink-words in globals.css)
-const statementWords = statement.flatMap((s) => s.text.split(" ").map((w) => ({ w, accent: s.accent })));
+// One span per word; each darkens over its own slice of its paragraph's scroll (see .ink-words in globals.css)
 const INK_FROM = 6; // % of the paragraph's cover range where the first word starts
 const INK_TO = 46; // ...and where the last word finishes
-const inkStep = (INK_TO - INK_FROM) / statementWords.length;
+const statementParagraphs = statement.map((para) => {
+  const words = para.flatMap((s) => s.text.split(" ").map((w) => ({ w, accent: s.accent })));
+  return { words, step: (INK_TO - INK_FROM) / words.length };
+});
 
 // What we build, each paired with the standard it ships with
 const builds = [
@@ -64,39 +71,63 @@ export function About() {
         {/* What we do: the studio in one line, as 3D lettering */}
         <WhatWeDo />
 
-        {/* Photo on the left, the statement on the right */}
-        <div className="mt-20 grid items-center gap-10 md:mt-28 md:grid-cols-[minmax(0,4fr)_minmax(0,7fr)] lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16">
-          {/* Portrait photo (1024x1536), cropped to 4:5; the key stays whole */}
-          <Reveal>
-            <div className="aspect-[4/5] w-full overflow-hidden rounded-[1.75rem] border border-taupe-light bg-burgundy-deep shadow-[0_40px_80px_-50px_rgba(54,10,22,0.45)]">
+        {/* Photo on the left, the statement's two boxes stacked on the right */}
+        <div className="mt-20 grid gap-4 md:mt-28 md:grid-cols-[minmax(0,4fr)_minmax(0,7fr)] md:gap-5 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-6">
+          {/* Portrait photo (1024x1536), cropped from the top so the lit logo stays whole. At least
+              4:5; beside the boxes it stretches to their height so both columns end level */}
+          <Reveal className="relative aspect-[4/5] w-full md:self-stretch">
+            <div className="absolute inset-0 overflow-hidden rounded-[1.75rem] border border-taupe-light bg-burgundy-deep shadow-[0_40px_80px_-50px_rgba(54,10,22,0.45)]">
               <Image
-                src="/about/key.webp"
-                alt="A gold key resting on burgundy velvet beside an embossed card"
+                src="/about/storefront.webp"
+                alt="A storefront at night under a lit monogram, its window reading: Every market has one business everyone else watches. Our job is to make sure it's yours."
                 width={1024}
                 height={1536}
                 unoptimized
-                className="h-full w-full object-cover"
+                className="h-full w-full object-cover object-top"
               />
             </div>
           </Reveal>
 
-          {/* Darkens word by word as it scrolls up */}
-          <p className="ink-words font-display text-[1.45rem] font-medium leading-[1.3] tracking-[-0.02em] text-ink sm:text-[1.65rem] md:text-[1.35rem] lg:text-[1.85rem]">
-            {statementWords.map(({ w, accent }, i) => {
-              const a = INK_FROM + i * inkStep;
-              return (
-                <Fragment key={i}>
-                  {i > 0 && " "}
-                  <span
-                    className={accent ? "text-burgundy" : undefined}
-                    style={{ "--a": `${a.toFixed(2)}%`, "--b": `${(a + inkStep * 3).toFixed(2)}%` } as CSSProperties}
+          <div className="flex flex-col gap-4 md:gap-5 lg:gap-6">
+            {/* Box 1: the headline, on burgundy */}
+            <Reveal delay={0.08}>
+              <div className="relative overflow-hidden rounded-[1.75rem] bg-burgundy-deep px-7 py-8 shadow-[0_40px_80px_-50px_rgba(54,10,22,0.6)] sm:px-9 sm:py-10 lg:px-11 lg:py-11">
+                <div className="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full bg-burgundy-light/40 blur-[80px]" />
+                <h3 className="relative font-display text-[1.85rem] font-semibold leading-[1.08] tracking-[-0.03em] text-paper sm:text-[2.3rem] md:text-[1.9rem] lg:text-[2.6rem] xl:text-[2.9rem]">
+                  Designed to be iconic.
+                  <br />
+                  <span className="text-rose">Engineered to excel.</span>
+                </h3>
+              </div>
+            </Reveal>
+
+            {/* Box 2: who we are. Darkens word by word as it scrolls up */}
+            <Reveal delay={0.16} className="flex flex-1 flex-col">
+              <div className="flex flex-1 flex-col justify-center gap-5 rounded-[1.75rem] border border-taupe-light bg-[#efe9e3] px-7 py-8 shadow-[0_40px_80px_-50px_rgba(54,10,22,0.3)] sm:px-9 sm:py-10 lg:gap-6 lg:px-11 lg:py-11">
+                {statementParagraphs.map(({ words, step }, p) => (
+                  <p
+                    key={p}
+                    className="ink-words font-display text-[1.15rem] font-medium leading-[1.4] tracking-[-0.015em] text-ink sm:text-[1.3rem] md:text-[1.05rem] lg:text-[1.3rem] xl:text-[1.45rem]"
                   >
-                    {w}
-                  </span>
-                </Fragment>
-              );
-            })}
-          </p>
+                    {words.map(({ w, accent }, i) => {
+                      const a = INK_FROM + i * step;
+                      return (
+                        <Fragment key={i}>
+                          {i > 0 && " "}
+                          <span
+                            className={accent ? "text-burgundy" : undefined}
+                            style={{ "--a": `${a.toFixed(2)}%`, "--b": `${(a + step * 3).toFixed(2)}%` } as CSSProperties}
+                          >
+                            {w}
+                          </span>
+                        </Fragment>
+                      );
+                    })}
+                  </p>
+                ))}
+              </div>
+            </Reveal>
+          </div>
         </div>
 
         {/* What we build, in practice, with the standard each one ships with */}
