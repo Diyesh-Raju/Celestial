@@ -1,19 +1,22 @@
-import { ArrowRight, Cpu, Database, MonitorSmartphone, TrendingUp, Workflow, type LucideIcon } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Cpu, Database, MonitorSmartphone, TrendingUp, Workflow, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { productHref, type ProductSlug } from "@/lib/data";
 import { Reveal, SectionLabel } from "./Reveal";
 import { ConnectVisual, CrmVisual, GrowVisual, WebVisual } from "./services/Visuals";
 
 type Tone = "dark" | "light";
 
 const card = {
-  base: "group flex w-full flex-col rounded-[2.25rem] p-7 transition-[translate,box-shadow] duration-500 ease-out hover:-translate-y-1 sm:p-8 lg:rounded-[2.75rem] lg:p-10",
-  dark: "relative overflow-hidden bg-burgundy-deep text-paper shadow-[0_40px_80px_-45px_rgba(54,10,22,0.75)] hover:shadow-[0_50px_90px_-45px_rgba(54,10,22,0.85)]",
+  base: "group flex w-full flex-col rounded-[2.25rem] p-7 transition-[translate,box-shadow] duration-500 ease-out hover:-translate-y-1 has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-4 has-[a:focus-visible]:outline-burgundy sm:p-8 lg:rounded-[2.75rem] lg:p-10",
+  // isolate: the glows sit at -z-10, above the card's fill but under its content
+  dark: "relative isolate overflow-hidden bg-burgundy-deep text-paper shadow-[0_40px_80px_-45px_rgba(54,10,22,0.75)] hover:shadow-[0_50px_90px_-45px_rgba(54,10,22,0.85)]",
   light:
     "relative overflow-hidden border border-taupe-light bg-[#efe9e3] text-ink shadow-[0_40px_80px_-50px_rgba(54,10,22,0.3)] hover:shadow-[0_50px_90px_-50px_rgba(54,10,22,0.4)]",
 };
 
-/** Number, verb and icon across the top of a card. */
+/** Number, verb and icon across the top of a card. On hover the icon gives way to an
+    arrow: the card opens its product's page. */
 function Eyebrow({ num, verb, Icon, tone }: { num: string; verb: string; Icon: LucideIcon; tone: Tone }) {
   return (
     <div className="flex items-center justify-between">
@@ -21,24 +24,50 @@ function Eyebrow({ num, verb, Icon, tone }: { num: string; verb: string; Icon: L
         {num} · {verb}
       </span>
       <span
-        className={`grid h-10 w-10 place-items-center rounded-full ${
-          tone === "dark" ? "bg-paper/10 text-rose" : "bg-paper text-burgundy"
+        className={`relative grid h-10 w-10 place-items-center overflow-hidden rounded-full transition-colors duration-300 ${
+          tone === "dark"
+            ? "bg-paper/10 text-rose group-hover:bg-rose group-hover:text-burgundy-deep"
+            : "bg-paper text-burgundy group-hover:bg-burgundy group-hover:text-paper"
         }`}
       >
-        <Icon className="h-[18px] w-[18px]" strokeWidth={1.5} />
+        <Icon
+          className="h-[18px] w-[18px] transition-[translate,opacity] duration-300 group-hover:-translate-y-3 group-hover:opacity-0"
+          strokeWidth={1.5}
+        />
+        <ArrowUpRight
+          className="absolute h-[18px] w-[18px] translate-y-3 opacity-0 transition-[translate,opacity] duration-300 group-hover:translate-y-0 group-hover:opacity-100"
+          strokeWidth={1.5}
+        />
       </span>
     </div>
   );
 }
 
-/** Title, one line of copy and the tags. */
-function Copy({ title, children, tags, tone }: { title: string; children: ReactNode; tags: string[]; tone: Tone }) {
+/** Title, one line of copy and the tags. The title links to the product's page, and its
+    ::after stretches over the whole card (to the nearest positioned box: the card), so
+    the card is one click target while screen readers hear just the title. z-10 keeps it
+    above the drawings, which are positioned. */
+function Copy({
+  title,
+  slug,
+  children,
+  tags,
+  tone,
+}: {
+  title: string;
+  slug: ProductSlug;
+  children: ReactNode;
+  tags: string[];
+  tone: Tone;
+}) {
   return (
     <div>
       <h3
         className={`font-display text-2xl font-semibold tracking-[-0.02em] lg:text-[1.75rem] ${tone === "dark" ? "text-paper" : "text-ink"}`}
       >
-        {title}
+        <Link href={productHref(slug)} className="outline-none after:absolute after:inset-0 after:z-10 after:content-['']">
+          {title}
+        </Link>
       </h3>
       <p className={`mt-3 max-w-md text-[15px] leading-relaxed ${tone === "dark" ? "text-paper/65" : "text-ink/65"}`}>
         {children}
@@ -91,10 +120,10 @@ export function Services() {
           {/* 01: narrow, dark */}
           <Reveal className="flex md:col-span-5 lg:col-span-9">
             <article className={`${card.base} ${card.dark}`}>
-              <div className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-burgundy-light/40 blur-[80px]" />
-              <div className="relative flex flex-1 flex-col gap-7">
+              <div className="pointer-events-none absolute -right-20 -top-24 -z-10 h-64 w-64 rounded-full bg-burgundy-light/40 blur-[80px]" />
+              <div className="flex flex-1 flex-col gap-7">
                 <Eyebrow num="01" verb="Build" Icon={MonitorSmartphone} tone="dark" />
-                <Copy title="Websites & e‑commerce" tags={["Web platforms", "Customer portals", "E-commerce"]} tone="dark">
+                <Copy title="Websites & e‑commerce" slug="websites" tags={["Web platforms", "Customer portals", "E-commerce"]} tone="dark">
                   High-conversion web platforms, customer portals and tailored storefronts, built for speed and scale.
                 </Copy>
                 <div className="mt-auto">
@@ -108,7 +137,7 @@ export function Services() {
           <Reveal delay={0.08} className="flex md:col-span-7 lg:col-span-15">
             <article className={`${card.base} ${card.light} gap-7`}>
               <Eyebrow num="02" verb="Run" Icon={Database} tone="light" />
-              <Copy title="CRM & business systems" tags={["Deal pipelines", "Quotes", "Live reporting"]} tone="light">
+              <Copy title="CRM & business systems" slug="crm" tags={["Deal pipelines", "Quotes", "Live reporting"]} tone="light">
                 Pipelines, contact tracking, quotes, automated follow-ups and live reporting, shaped around how your team
                 actually works.
               </Copy>
@@ -123,7 +152,7 @@ export function Services() {
           <Reveal className="flex md:col-span-6 lg:col-span-11">
             <article className={`${card.base} ${card.light} gap-7`}>
               <Eyebrow num="03" verb="Connect" Icon={Workflow} tone="light" />
-              <Copy title="Automation & integrations" tags={["Workflows", "API integration", "Custom software"]} tone="light">
+              <Copy title="Automation & integrations" slug="automation" tags={["Workflows", "API integration", "Custom software"]} tone="light">
                 Workflows that end manual handoffs, with your tools, databases and APIs joined into one system. No
                 rip-and-replace.
               </Copy>
@@ -136,10 +165,10 @@ export function Services() {
           {/* 04: wide, dark. The chart runs out to the card's edges */}
           <Reveal delay={0.08} className="flex md:col-span-6 lg:col-span-13">
             <article className={`${card.base} ${card.dark} bg-gradient-to-br from-burgundy to-burgundy-deep pb-0!`}>
-              <div className="pointer-events-none absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-rose/20 blur-[90px]" />
-              <div className="relative flex flex-1 flex-col gap-7">
+              <div className="pointer-events-none absolute -bottom-24 -left-20 -z-10 h-72 w-72 rounded-full bg-rose/20 blur-[90px]" />
+              <div className="flex flex-1 flex-col gap-7">
                 <Eyebrow num="04" verb="Grow" Icon={TrendingUp} tone="dark" />
-                <Copy title="Growth & ads" tags={["Meta Ads", "Google Ads", "SEO", "ROI tracking"]} tone="dark">
+                <Copy title="Growth & ads" slug="growth" tags={["Meta Ads", "Google Ads", "SEO", "ROI tracking"]} tone="dark">
                   Meta and Google campaigns and top-tier SEO, wired into your CRM and measured in revenue, not clicks.
                 </Copy>
                 <div className="-mx-7 mt-auto sm:-mx-8 lg:-mx-10">
@@ -150,19 +179,26 @@ export function Services() {
           </Reveal>
         </div>
 
-        {/* After launch: managed tech and CTO support */}
+        {/* After launch: managed tech and CTO support. Like the cards, the strip opens its
+            product's page (the bold sentence's link is stretched over it); the Start a
+            project button sits above that link. */}
         <Reveal className="mt-4 md:mt-5 lg:mt-6">
-          <div className="flex flex-col items-start gap-5 rounded-[2rem] border border-taupe-light bg-[#efe9e3] p-6 sm:flex-row sm:items-center sm:rounded-full sm:p-3 sm:pr-3">
+          <div className="group/strip relative flex overflow-hidden flex-col items-start gap-5 rounded-[2rem] border border-taupe-light bg-[#efe9e3] p-6 transition-colors duration-300 hover:border-taupe has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-4 has-[a:focus-visible]:outline-burgundy sm:flex-row sm:items-center sm:rounded-full sm:p-3 sm:pr-3">
             <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-burgundy text-paper">
               <Cpu className="h-5 w-5" strokeWidth={1.5} />
             </span>
             <p className="flex-1 text-[15px] leading-relaxed text-ink/65">
-              <span className="font-semibold text-ink">And after launch, managed tech &amp; CTO support.</span> Monitoring,
-              infrastructure and technical leadership for everything we ship.
+              <Link
+                href={productHref("cto-support")}
+                className="font-semibold text-ink underline decoration-transparent underline-offset-4 outline-none transition-colors after:absolute after:inset-0 after:content-[''] group-hover/strip:decoration-burgundy/40"
+              >
+                And after launch, managed tech &amp; CTO support.
+              </Link>{" "}
+              Monitoring, infrastructure and technical leadership for everything we ship.
             </p>
             <Link
               href="/contact"
-              className="group/cta inline-flex shrink-0 items-center gap-2 rounded-full bg-burgundy px-6 py-3.5 text-sm font-medium text-paper transition-colors hover:bg-burgundy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-burgundy"
+              className="group/cta relative z-10 inline-flex shrink-0 items-center gap-2 rounded-full bg-burgundy px-6 py-3.5 text-sm font-medium text-paper transition-colors hover:bg-burgundy-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-burgundy"
             >
               Start a project
               <ArrowRight className="h-4 w-4 transition-transform group-hover/cta:translate-x-1" strokeWidth={1.75} />

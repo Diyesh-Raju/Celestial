@@ -171,3 +171,57 @@ export function GrowVisual() {
     </div>
   );
 }
+
+const systems = ["Website", "CRM", "Integrations"];
+const checks = ["Backups", "SSL", "Updates"];
+
+/** Managed tech & CTO support: a status board with thirty days of uptime per system
+    (one short blip, long resolved) and the routine checks done (on a dark card). */
+export function MonitorVisual() {
+  return (
+    <div
+      aria-hidden
+      className="rounded-[1.4rem] border border-paper/10 bg-paper/[0.06] p-4 shadow-[0_30px_60px_-30px_rgba(0,0,0,0.7)] transition-transform duration-700 ease-out group-hover:-translate-y-1 sm:p-5"
+    >
+      <div className="flex items-center justify-between gap-3">
+        <span className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-paper/75">
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inset-0 animate-ping rounded-full bg-rose/60" />
+            <span className="relative h-2 w-2 rounded-full bg-rose" />
+          </span>
+          All systems normal
+        </span>
+        <span className="text-[9px] uppercase tracking-[0.16em] text-paper/40">Last 30 days</span>
+      </div>
+      <div className="mt-5 flex flex-col gap-4">
+        {systems.map((name, row) => (
+          <div key={name}>
+            <div className="flex items-center justify-between text-[10px] text-paper/60">
+              <span>{name}</span>
+              <Check className="h-3 w-3 text-rose" strokeWidth={2.5} />
+            </div>
+            <div className="mt-1.5 flex gap-[3px]">
+              {Array.from({ length: 30 }, (_, i) => (
+                <span
+                  key={i}
+                  className={`h-5 flex-1 rounded-[2px] ${row === 1 && i === 19 ? "bg-paper/25" : "bg-rose/70"}`}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-5 flex flex-wrap gap-2 border-t border-paper/10 pt-4">
+        {checks.map((c) => (
+          <span
+            key={c}
+            className="inline-flex items-center gap-1.5 rounded-full border border-paper/15 px-2.5 py-1 text-[9px] uppercase tracking-[0.14em] text-paper/70"
+          >
+            <Check className="h-2.5 w-2.5 text-rose" strokeWidth={3} />
+            {c}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}

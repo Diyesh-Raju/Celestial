@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Link, { type LinkProps } from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, MotionConfig, motion, stagger, type Variants } from "framer-motion";
-import { ArrowUpRight, CalendarDays } from "lucide-react";
-import { CONTACT, navLinks } from "@/lib/data";
+import { ArrowRight, ArrowUpRight, CalendarDays } from "lucide-react";
+import { CONTACT, navLinks, productHref, products } from "@/lib/data";
 import { LOGO_PATH, LOGO_VIEWBOX } from "@/lib/logo";
 
 /* Celestial Developers mark: a circle split into two mirrored crescent-and-bar halves */
@@ -66,13 +66,24 @@ function MenuButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-const menuLinks = [...navLinks, { href: "/contact", label: "Contact" }];
+const menuLinks = [...navLinks, { href: "/contact", label: "Contact Us" }];
 
-/* Jumps (no smooth scroll) to a "#hash" target, or to the top of the page */
+// The menu link that lists the products beside it
+const PRODUCTS_HREF = "/#services";
+
+/* Jumps (no smooth scroll) to a "#hash" target, or to the top of the page.
+   The target's place comes from layout (offsetTop), not scrollIntoView: these jumps
+   run while the menu's scroll lock is on, and the lock throws scroll-driven
+   transforms to their end (the About slide-over sits 100vh low), which
+   scrollIntoView would include. */
 function jumpTo(hash: string) {
   const target = hash ? document.getElementById(decodeURIComponent(hash.slice(1))) : null;
-  if (target) target.scrollIntoView({ behavior: "instant", block: "start" });
-  else window.scrollTo({ top: 0, behavior: "instant" });
+  let top = 0;
+  if (target) {
+    for (let el: HTMLElement | null = target; el; el = el.offsetParent as HTMLElement | null) top += el.offsetTop;
+    top -= parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+  }
+  window.scrollTo({ top, behavior: "instant" });
 }
 
 type NavigateHandler = NonNullable<LinkProps["onNavigate"]>;
@@ -145,6 +156,59 @@ const linkVariants: Variants = {
   },
 };
 
+/* The products, listed with "Products & Services". On screens that hover and are
+   1024px+ wide (.menu-flyout), hovering or tabbing to the link draws a dash out to
+   its right and they fade in one under another; elsewhere they sit in a small row
+   under it (.menu-inline). The motion lives in globals.css under "Site menu". Each
+   opens its own page. */
+function ProductFlyout({ onNavigate }: { onNavigate: (href: string) => NavigateHandler }) {
+  const pathname = usePathname();
+  return (
+    <div className="menu-flyout absolute left-full top-1/2 -translate-y-1/2 items-center pl-4 xl:pl-6">
+      <span aria-hidden className="menu-dash block h-px w-10 bg-burgundy xl:w-16" />
+      <ul className="ml-3 flex flex-col text-left xl:ml-5">
+        {products.map((p, i) => (
+          <li key={p.slug} style={{ "--i": i } as CSSProperties}>
+            <Link
+              href={productHref(p.slug)}
+              onNavigate={onNavigate(productHref(p.slug))}
+              aria-current={pathname === productHref(p.slug) ? "page" : undefined}
+              className="group/item flex items-center gap-2 whitespace-nowrap py-1.5 font-sans text-[15px] leading-snug text-burgundy/80 transition-colors duration-300 hover:text-burgundy-deep focus-visible:text-burgundy-deep focus-visible:outline-none aria-[current=page]:font-medium aria-[current=page]:text-burgundy-deep xl:text-[17px]"
+            >
+              {p.title}
+              <ArrowRight
+                aria-hidden
+                className="h-4 w-4 -translate-x-1 opacity-0 transition-[translate,opacity] duration-300 group-hover/item:translate-x-0 group-hover/item:opacity-100 group-focus-visible/item:translate-x-0 group-focus-visible/item:opacity-100"
+                strokeWidth={1.75}
+              />
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function ProductRow({ onNavigate }: { onNavigate: (href: string) => NavigateHandler }) {
+  const pathname = usePathname();
+  return (
+    <ul className="menu-inline mx-auto mt-1 flex max-w-xs flex-wrap justify-center gap-x-5 px-4 sm:max-w-md">
+      {products.map((p) => (
+        <li key={p.slug}>
+          <Link
+            href={productHref(p.slug)}
+            onNavigate={onNavigate(productHref(p.slug))}
+            aria-current={pathname === productHref(p.slug) ? "page" : undefined}
+            className="inline-block py-1.5 font-sans text-[13px] text-burgundy/75 transition-colors hover:text-burgundy-deep aria-[current=page]:font-medium aria-[current=page]:text-burgundy-deep sm:text-sm"
+          >
+            {p.short}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function MenuOverlay({ onClose, onNavigate }: { onClose: () => void; onNavigate: (href: string) => NavigateHandler }) {
   return (
     <>
@@ -188,18 +252,42 @@ function MenuOverlay({ onClose, onNavigate }: { onClose: () => void; onNavigate:
         </div>
 
         <div className="flex flex-1 flex-col items-center justify-center text-center">
-          <motion.nav variants={linkListVariants} className="flex w-full flex-col items-center">
-            {menuLinks.map((l) => (
-              <motion.div key={l.href} variants={linkVariants} className="w-full">
+          <motion.nav variants={linkListVariants} className="menu-nav flex w-full flex-col items-center">
+            {/* The type shrinks with the screen's height (up to 5xl/6xl) so the list and the
+                footer row fit on short screens, and on phones with its width too, so
+                "Products & Services" stays on one line. From lg up it also stays within
+                4.8vw, so the products listed beside it still fit on a tall, narrow window */}
+            {menuLinks.map((l) => {
+              const isProducts = l.href === PRODUCTS_HREF;
+              const link = (
                 <Link
                   href={l.href}
                   onNavigate={onNavigate(l.href)}
-                  className="inline-block font-display text-5xl leading-[1.1] tracking-tight transition-colors duration-300 hover:text-burgundy-deep md:text-6xl"
+                  className={`menu-link inline-block font-display text-[length:clamp(1.75rem,min(6.4svh,10vw),3rem)] leading-[1.1] tracking-tight transition-[color,opacity] duration-300 hover:text-burgundy-deep md:text-[length:clamp(2rem,6.4svh,3.75rem)] lg:text-[length:clamp(2rem,min(6.4svh,4.8vw),3.75rem)] ${
+                    isProducts ? "menu-products-link" : ""
+                  }`}
                 >
                   {l.label}
                 </Link>
-              </motion.div>
-            ))}
+              );
+              // The products row sits above its neighbours: its list is taller than the
+              // row and hangs over them, and has to stay hoverable there
+              return (
+                <motion.div key={l.href} variants={linkVariants} className={isProducts ? "relative z-10 w-full" : "w-full"}>
+                  {isProducts ? (
+                    <>
+                      <span className="menu-products relative inline-block">
+                        {link}
+                        <ProductFlyout onNavigate={onNavigate} />
+                      </span>
+                      <ProductRow onNavigate={onNavigate} />
+                    </>
+                  ) : (
+                    link
+                  )}
+                </motion.div>
+              );
+            })}
           </motion.nav>
         </div>
 

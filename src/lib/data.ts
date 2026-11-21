@@ -59,14 +59,32 @@ export const faqs = [
 ];
 
 // Root-relative so they work from /contact as well as the home page.
+// Home page sections, in page order. The menu adds Contact Us after them.
+// "Capabilities" opens the "What we do" heading at the top of About.
 export const navLinks = [
   { href: "/#top", label: "Home" },
-  { href: "/#services", label: "Services" },
+  { href: "/#about", label: "Capabilities" },
+  { href: "/#services", label: "Products & Services" },
+  { href: "/#why-us", label: "Why Us" },
   { href: "/#process", label: "Process" },
   { href: "/#faq", label: "FAQ" },
-  { href: "/#reviews", label: "Testimonials" },
-  { href: "/portfolio", label: "Selected Work" },
 ];
+
+// The products & services that each have their own page (src/app/services/*). The four
+// home page cards and the "after launch" strip link to them, and the menu lists them
+// beside "Products & Services". `short` is the label in the phone menu. The page
+// content lives in lib/products.ts.
+export const products = [
+  { slug: "websites", title: "Websites & e‑commerce", short: "Websites" },
+  { slug: "crm", title: "CRM & business systems", short: "CRM" },
+  { slug: "automation", title: "Automation & integrations", short: "Automation" },
+  { slug: "growth", title: "Growth & ads", short: "Growth & ads" },
+  { slug: "cto-support", title: "Managed tech & CTO support", short: "CTO support" },
+] as const;
+
+export type ProductSlug = (typeof products)[number]["slug"];
+
+export const productHref = (slug: ProductSlug) => `/services/${slug}`;
 
 export const enquiryTopics = [
   "Website / E-commerce",
@@ -200,40 +218,12 @@ export const comparison = [
   },
 ] as const;
 
-// `bg` / `ink`: the slide colour and the giant background name in the Work slider
+// Client sites, listed under "Trusted by" on the contact page
 export const portfolio = [
-  {
-    name: "Obsidian Blade",
-    url: "https://obsidian-blade.vercel.app/",
-    image: "/work/obsidian.jpg",
-    tag: "Custom Web App",
-    bg: "#ddd4ca",
-    ink: "#561226",
-  },
-  {
-    name: "Nocturne Food & Beverage",
-    url: "https://nocturnefoodbeverage.vercel.app/",
-    image: "/work/nocturne.jpg",
-    tag: "E-Commerce / Hospitality",
-    bg: "#561226",
-    ink: "#e8e0d8",
-  },
-  {
-    name: "Sage Thread Boutique",
-    url: "https://sage-thread-botique-website.vercel.app/",
-    image: "/work/sage.jpg",
-    tag: "Retail / Fashion",
-    bg: "#a8968a",
-    ink: "#2f2b29",
-  },
-  {
-    name: "Vijaya Enterprises",
-    url: "https://vijaya.in",
-    image: "/work/vijaya.jpg",
-    tag: "Real Estate Enterprise Group",
-    bg: "#2a2829",
-    ink: "#c4798b",
-  },
+  { name: "Obsidian Blade", url: "https://obsidian-blade.vercel.app/" },
+  { name: "Nocturne Food & Beverage", url: "https://nocturnefoodbeverage.vercel.app/" },
+  { name: "Sage Thread Boutique", url: "https://sage-thread-botique-website.vercel.app/" },
+  { name: "Vijaya Enterprises", url: "https://vijaya.in" },
 ];
 
 export const processSteps = [

@@ -354,12 +354,6 @@ export function Hero() {
               Start a project
               <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-0.5" />
             </Link>
-            <Link
-              href="/portfolio"
-              className="inline-flex h-12 items-center rounded-full border border-paper/25 bg-paper/[0.07] px-6 text-[15px] font-semibold text-paper backdrop-blur-md transition hover:border-paper/40 hover:bg-paper/[0.13] active:scale-[0.97]"
-            >
-              View selected work
-            </Link>
           </div>
         </div>
       </div>

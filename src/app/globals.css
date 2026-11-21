@@ -241,6 +241,63 @@ body {
   animation: svc-flow 1.4s linear infinite;
 }
 
+/* Site menu (components/Navbar.tsx): the products beside "Products & Services". On
+   screens that hover and are 1024px+ wide, hovering the link (or tabbing to it) draws
+   a dash out to its right, the products fade in one under another (--i staggers
+   them) and the other links step back. Elsewhere the products sit in a small row
+   under the link instead, dropped on very short screens so the menu still fits.
+   The open state needs :has(:focus-visible), not :focus-within, so a mouse click on
+   the link doesn't leave the list stuck open. */
+.menu-flyout {
+  display: none;
+}
+@media (hover: hover) and (min-width: 64rem) {
+  .menu-inline {
+    display: none;
+  }
+  .menu-flyout {
+    display: flex;
+    pointer-events: none;
+  }
+  .menu-dash {
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.25s ease-in;
+  }
+  .menu-flyout li {
+    opacity: 0;
+    translate: -10px 0;
+    transition:
+      opacity 0.2s ease,
+      translate 0.2s ease;
+  }
+  .menu-products:is(:hover, :has(:focus-visible)) .menu-flyout {
+    pointer-events: auto;
+  }
+  .menu-products:is(:hover, :has(:focus-visible)) .menu-dash {
+    transform: scaleX(1);
+    transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .menu-products:is(:hover, :has(:focus-visible)) .menu-flyout li {
+    opacity: 1;
+    translate: 0 0;
+    transition:
+      opacity 0.5s ease calc(var(--i) * 55ms + 0.18s),
+      translate 0.7s cubic-bezier(0.16, 1, 0.3, 1) calc(var(--i) * 55ms + 0.18s);
+  }
+  .menu-products:is(:hover, :has(:focus-visible)) .menu-products-link {
+    color: var(--color-burgundy-deep);
+  }
+  .menu-nav:has(.menu-products:is(:hover, :has(:focus-visible))) .menu-link:not(.menu-products-link) {
+    opacity: 0.35;
+  }
+}
+@media (max-height: 30rem) {
+  .menu-inline {
+    display: none;
+  }
+}
+
 /* "What we do" heading (components/about/WhatWeDo.tsx): solid 3D lettering. Each
    word is its front face plus slices of itself stacked behind it in depth, so the
    thickness is real and shifts as the heading turns (WhatWeDo sets the stage's
@@ -1246,6 +1303,18 @@ html[data-nav-hidden] .site-header {
   }
   .svc-flow {
     animation: none;
+  }
+  /* Menu products: they and the dash fade in, without sliding or drawing */
+  .menu-flyout li {
+    translate: 0 0 !important;
+  }
+  .menu-dash {
+    transform: none !important;
+    opacity: 0;
+    transition: opacity 0.3s ease !important;
+  }
+  .menu-products:is(:hover, :has(:focus-visible)) .menu-dash {
+    opacity: 1;
   }
   .js .svc-draw,
   .js .svc-fade {

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { ArrowUpRight, Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { EnquiryForm } from "@/components/contact/EnquiryForm";
 import { Footer } from "@/components/Footer";
@@ -189,9 +188,6 @@ function EnquirySection() {
               <a href={whatsappHref} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full border border-taupe/40 bg-paper px-4 py-2 text-sm text-ink/80 transition hover:border-taupe/50 hover:text-ink">
                 <MessageCircle className="h-4 w-4 text-taupe-dark" /> WhatsApp
               </a>
-              <Link href="/portfolio" className="inline-flex items-center gap-2 rounded-full border border-taupe/40 bg-paper px-4 py-2 text-sm text-ink/80 transition hover:border-burgundy/50 hover:text-ink">
-                <ArrowUpRight className="h-4 w-4 text-burgundy" /> Our work
-              </Link>
             </div>
           </div>
         </Reveal>
