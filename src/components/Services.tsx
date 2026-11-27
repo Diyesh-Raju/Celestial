@@ -278,14 +278,14 @@ function GlassIcon({ Icon }: { Icon: LucideIcon }) {
   );
 }
 
-/** Our products & services: the quote, a MacBook showing the glowing-logo wall, and
+/** Our products & services: the quote, a MacBook showing the sealed-envelope photo, and
     the six products on glass.
 
     On landscape screens from lg up the section pins (see play above and "Home page
-    products" in globals.css): the camera moves into the MacBook until the wall fills
-    the screen, the wall blurs, and the six boxes come down from the top and land
+    products" in globals.css): the camera moves into the MacBook until the photo fills
+    the screen, the photo blurs, and the six boxes come down from the top and land
     in the middle of it, three across and two down. Elsewhere, and with reduced motion, it is a
-    column: the heading, the MacBook, then the boxes on the blurred wall. */
+    column: the heading, the MacBook, then the boxes on the blurred photo. */
 export function Services() {
   const trackRef = useRef<HTMLElement>(null);
 
@@ -333,27 +333,28 @@ export function Services() {
                 strokeLinecap="round"
               />
             </svg>
+            <p className="svc-hint mt-4 text-[13px] tracking-[0.02em] text-taupe-dark md:mt-5">Scroll to discover</p>
           </Reveal>
         </div>
 
-        {/* The MacBook, its screen showing the glowing-logo wall */}
+        {/* The MacBook, its screen showing the envelope photo (public/products/envelope*.webp) */}
         <div className="svc-mac-area relative px-6 pb-16 md:pb-24">
           <div className="svc-mac relative mx-auto w-full max-w-3xl">
             <MacBook>
               <div className="svc-shot">
-                <Image src="/products/wall-glow.webp" alt="" fill unoptimized sizes="100vw" className="object-cover" />
-                <Image src="/products/wall-glow-soft.webp" alt="" fill unoptimized sizes="100vw" className="svc-soft object-cover" />
-                <Image src="/products/wall-glow-blur.webp" alt="" fill unoptimized sizes="100vw" className="svc-blur object-cover" />
+                <Image src="/products/envelope.webp" alt="" fill unoptimized sizes="100vw" className="object-cover" />
+                <Image src="/products/envelope-soft.webp" alt="" fill unoptimized sizes="100vw" className="svc-soft object-cover" />
+                <Image src="/products/envelope-blur.webp" alt="" fill unoptimized sizes="100vw" className="svc-blur object-cover" />
               </div>
             </MacBook>
           </div>
         </div>
 
-        {/* The six products. In the column they sit on the blurred wall; on desktop this
+        {/* The six products. In the column they sit on the blurred photo; on desktop this
             is a layer over the stage that they come down into. */}
         <div className="svc-panel relative isolate overflow-hidden px-6 pb-20 pt-20 sm:pb-24">
           <div aria-hidden className="svc-panel-bg absolute inset-0 -z-20 [mask-image:linear-gradient(to_bottom,transparent,#000_5rem)]">
-            <Image src="/products/wall-glow-blur.webp" alt="" fill unoptimized sizes="100vw" className="object-cover" />
+            <Image src="/products/envelope-blur.webp" alt="" fill unoptimized sizes="100vw" className="object-cover" />
           </div>
           <div aria-hidden className="svc-dim absolute inset-0 -z-10 bg-[#2a0c14]/35 [mask-image:linear-gradient(to_bottom,transparent,#000_5rem)]" />
           <GlyphGradient />

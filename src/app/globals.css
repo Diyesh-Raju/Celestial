@@ -368,6 +368,9 @@ body {
   .js .svc-rule {
     margin-top: min(2rem, 2.6vh);
   }
+  .js .svc-hint {
+    margin-top: min(1.25rem, 1.8vh);
+  }
   /* The rest of the screen, with the MacBook as large as fits it */
   .js .svc-mac-area {
     flex: 1;
