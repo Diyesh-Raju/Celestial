@@ -68,8 +68,16 @@ function MenuButton({ onClick }: { onClick: () => void }) {
 
 const menuLinks = [...navLinks, { href: "/contact", label: "Contact Us" }];
 
-// The menu link that lists the products beside it
-const PRODUCTS_HREF = "/#services";
+// The menu link that lists the products beside it: it opens the products & services
+// page, and each product jumps to its section there
+const PRODUCTS_HREF = "/services";
+
+// What's listed beside it: "Home" first, back to the products & services section of
+// the home page, then the five products. `short` is the phone label.
+const productMenuItems = [
+  { href: "/#services", title: "Home", short: "Home", label: "Home: products & services section" },
+  ...products.map((p) => ({ href: productHref(p.slug), title: p.title, short: p.short, label: undefined })),
+];
 
 /* Jumps (no smooth scroll) to a "#hash" target, or to the top of the page.
    The target's place comes from layout (offsetTop), not scrollIntoView: these jumps
@@ -159,23 +167,23 @@ const linkVariants: Variants = {
 /* The products, listed with "Products & Services". On screens that hover and are
    1024px+ wide (.menu-flyout), hovering or tabbing to the link draws a dash out to
    its right and they fade in one under another; elsewhere they sit in a small row
-   under it (.menu-inline). The motion lives in globals.css under "Site menu". Each
-   opens its own page. */
+   under it (.menu-inline). The motion lives in globals.css under "Site menu". "Home"
+   goes back to the home page's products & services section; each product jumps to
+   its section on the products & services page. */
 function ProductFlyout({ onNavigate }: { onNavigate: (href: string) => NavigateHandler }) {
-  const pathname = usePathname();
   return (
     <div className="menu-flyout absolute left-full top-1/2 -translate-y-1/2 items-center pl-4 xl:pl-6">
       <span aria-hidden className="menu-dash block h-px w-10 bg-burgundy xl:w-16" />
       <ul className="ml-3 flex flex-col text-left xl:ml-5">
-        {products.map((p, i) => (
-          <li key={p.slug} style={{ "--i": i } as CSSProperties}>
+        {productMenuItems.map((item, i) => (
+          <li key={item.href} style={{ "--i": i } as CSSProperties}>
             <Link
-              href={productHref(p.slug)}
-              onNavigate={onNavigate(productHref(p.slug))}
-              aria-current={pathname === productHref(p.slug) ? "page" : undefined}
-              className="group/item flex items-center gap-2 whitespace-nowrap py-1.5 font-sans text-[15px] leading-snug text-burgundy/80 transition-colors duration-300 hover:text-burgundy-deep focus-visible:text-burgundy-deep focus-visible:outline-none aria-[current=page]:font-medium aria-[current=page]:text-burgundy-deep xl:text-[17px]"
+              href={item.href}
+              onNavigate={onNavigate(item.href)}
+              aria-label={item.label}
+              className="group/item flex items-center gap-2 whitespace-nowrap py-1.5 font-sans text-[15px] leading-snug text-burgundy/80 transition-colors duration-300 hover:text-burgundy-deep focus-visible:text-burgundy-deep focus-visible:outline-none xl:text-[17px]"
             >
-              {p.title}
+              {item.title}
               <ArrowRight
                 aria-hidden
                 className="h-4 w-4 -translate-x-1 opacity-0 transition-[translate,opacity] duration-300 group-hover/item:translate-x-0 group-hover/item:opacity-100 group-focus-visible/item:translate-x-0 group-focus-visible/item:opacity-100"
@@ -190,18 +198,17 @@ function ProductFlyout({ onNavigate }: { onNavigate: (href: string) => NavigateH
 }
 
 function ProductRow({ onNavigate }: { onNavigate: (href: string) => NavigateHandler }) {
-  const pathname = usePathname();
   return (
     <ul className="menu-inline mx-auto mt-1 flex max-w-xs flex-wrap justify-center gap-x-5 px-4 sm:max-w-md">
-      {products.map((p) => (
-        <li key={p.slug}>
+      {productMenuItems.map((item) => (
+        <li key={item.href}>
           <Link
-            href={productHref(p.slug)}
-            onNavigate={onNavigate(productHref(p.slug))}
-            aria-current={pathname === productHref(p.slug) ? "page" : undefined}
-            className="inline-block py-1.5 font-sans text-[13px] text-burgundy/75 transition-colors hover:text-burgundy-deep aria-[current=page]:font-medium aria-[current=page]:text-burgundy-deep sm:text-sm"
+            href={item.href}
+            onNavigate={onNavigate(item.href)}
+            aria-label={item.label}
+            className="inline-block py-1.5 font-sans text-[13px] text-burgundy/75 transition-colors hover:text-burgundy-deep sm:text-sm"
           >
-            {p.short}
+            {item.short}
           </Link>
         </li>
       ))}
@@ -345,7 +352,7 @@ export function Navbar() {
     if (pendingHash.current !== null) return;
     const url = new URL(href, window.location.href);
     if (url.pathname === window.location.pathname) {
-      if (url.hash && url.hash !== window.location.hash) window.history.pushState(null, "", url.hash);
+      if (url.hash !== window.location.hash) window.history.pushState(null, "", url.pathname + url.hash);
       jumpTo(url.hash);
       setOpen(false);
     } else {

@@ -33,20 +33,21 @@ import {
 } from "lucide-react";
 import type { ProductSlug } from "./data";
 
-// What each product page says (components/product/ProductPage.tsx). The names, order
-// and links live in `products` in lib/data.ts, which the menu also reads; this file
-// stays out of the client bundle.
+// What each product's section on the products & services page says
+// (components/services/ServicesPage.tsx). The names, order and links live in
+// `products` in lib/data.ts, which the menu also reads; this file stays out of the
+// client bundle.
 
 export type ProductContent = {
   num: string;
   verb: string;
   Icon: LucideIcon;
-  /** The h1: plain words, then the accent words */
+  /** The line under the product's name: plain words, then the accent words */
   headline: [string, string];
   lead: string;
-  /** Meta description */
+  /** One-sentence summary, used in the page's structured data */
   description: string;
-  /** Three promises on the cards overlapping the hero */
+  /** Three promises, listed beside the product's drawing */
   highlights: { title: string; text: string }[];
   /** What we build: six deliverables */
   included: { Icon: LucideIcon; title: string; text: string }[];
@@ -55,7 +56,7 @@ export type ProductContent = {
   /** How we deliver it: four steps */
   steps: { title: string; text: string }[];
   faqs: { q: string; a: string }[];
-  /** Closing call to action: plain words, then the accent words */
+  /** Call to action at the end of the product's section: plain words, then the accent words */
   cta: [string, string];
 };
 

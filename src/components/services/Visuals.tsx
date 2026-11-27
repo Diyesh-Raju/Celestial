@@ -1,8 +1,8 @@
 import { BarChart3, Check, Database, FileText, Globe, Mail, Megaphone } from "lucide-react";
 import { LOGO_PATH, LOGO_VIEWBOX } from "@/lib/logo";
 
-// Small drawings for the products & services cards (components/Services.tsx). Pure markup,
-// decorative only; the motion lives in globals.css under "Products & services".
+// Small drawings for the products on the products & services page (ServicesPage.tsx).
+// Pure markup, decorative only; the motion lives in globals.css under "Products & services".
 
 /** Websites & e-commerce: a storefront in a browser window (on a dark card). */
 export function WebVisual() {

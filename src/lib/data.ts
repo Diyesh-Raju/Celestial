@@ -58,22 +58,23 @@ export const faqs = [
   },
 ];
 
-// Root-relative so they work from /contact as well as the home page.
-// Home page sections, in page order. The menu adds Contact Us after them.
-// "Capabilities" opens the "What we do" heading at the top of About.
+// Root-relative so they work from any page. Home page sections, in page order,
+// except "Products & Services", which opens its own page (/services). The menu adds
+// Contact Us after them. "Capabilities" opens the "What we do" heading at the top of About.
 export const navLinks = [
   { href: "/#top", label: "Home" },
   { href: "/#about", label: "Capabilities" },
-  { href: "/#services", label: "Products & Services" },
+  { href: "/services", label: "Products & Services" },
   { href: "/#why-us", label: "Why Us" },
   { href: "/#process", label: "Process" },
   { href: "/#faq", label: "FAQ" },
 ];
 
-// The products & services that each have their own page (src/app/services/*). The four
-// home page cards and the "after launch" strip link to them, and the menu lists them
-// beside "Products & Services". `short` is the label in the phone menu. The page
-// content lives in lib/products.ts.
+// The products & services, each with its own section on the products & services page
+// (/services, components/services/ServicesPage.tsx; the section's id is the slug). The
+// menu lists them beside "Products & Services" and jumps to their sections. `short` is
+// the label in the phone menu and the page's product bar. The page copy lives in
+// lib/products.ts.
 export const products = [
   { slug: "websites", title: "Websites & e‑commerce", short: "Websites" },
   { slug: "crm", title: "CRM & business systems", short: "CRM" },
@@ -84,7 +85,7 @@ export const products = [
 
 export type ProductSlug = (typeof products)[number]["slug"];
 
-export const productHref = (slug: ProductSlug) => `/services/${slug}`;
+export const productHref = (slug: ProductSlug) => `/services#${slug}`;
 
 export const enquiryTopics = [
   "Website / E-commerce",

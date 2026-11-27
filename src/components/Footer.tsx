@@ -5,7 +5,7 @@ import { SocialIcons } from "./SocialIcons";
 
 const footerLinks = [
   { href: "/", label: "Home" },
-  { href: "/#services", label: "Services" },
+  { href: "/services", label: "Services" },
   { href: "/#process", label: "Process" },
   { href: "/#faq", label: "FAQ" },
   { href: "/contact", label: "Contact Us" },

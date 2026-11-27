@@ -1,0 +1,475 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<!--
+  The home page's MacBook (public/macbook/mbp.webp): a space black 16-inch MacBook Pro built
+  in three.js, lid open, seen square on to its display (camera on the display's normal,
+  through its centre, from 3.2 m) so the display is an exact rectangle the page can zoom
+  into. The display is cut out (alpha 0) so the page's photo shows through round the
+  notch. Rendered and saved by render.mjs next to this file; open it on its own through
+  any static server at the repo root for a preview (query: finish=silver, tilt, dist,
+  exp, env, glass, grille, shadowk, w, and the finish overrides under "materials").
+-->
+<style>html,body{margin:0;background:#e8e0d8}canvas{display:block}</style>
+<script type="importmap">
+{ "imports": { "three": "/node_modules/three/build/three.module.js", "three/addons/": "/node_modules/three/examples/jsm/" } }
+</script>
+</head>
+<body>
+<script type="module">
+import * as THREE from "three";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+
+const Q = new URLSearchParams(location.search);
+const TILT = +(Q.get("tilt") ?? 12) * Math.PI / 180; // lid tilted back from vertical
+const DIST = +(Q.get("dist") ?? 320);
+const FINISH = Q.get("finish") ?? "black";
+const FULLW = +(Q.get("w") ?? 1600); // full virtual frame width (px)
+const TILE = +(Q.get("tile") ?? 0); // 0 = single frame preview
+const PREVIEW = !TILE;
+
+/* ---------- dimensions (cm): 16-inch MacBook Pro ---------- */
+const W = 35.57, D = 24.81, HB = 1.08; // base
+const RB_PLAN = 1.05; // base corner radius from above
+const LT = 0.56, LR = 0.68, LH = 23.9; // lid thickness, corner radius, height
+const RIM = 0.17; // anodised rim visible round the glass
+const DISP_W = 34.56, DISP_H = 22.34, DISP_TOP = 0.36; // display incl. menu strip; black above it
+const NOTCH_W = 2.95, NOTCH_H = 0.74, NOTCH_R = 0.36, NOTCH_F = 0.12;
+const DISP_R = 0.32; // display top corner radius
+
+/* ---------- materials ---------- */
+const FIN = {
+  silver: { base: 0xc9cacd, rough: 0.36, metal: 1.0, pad: 0xc6c7ca, cc: 0.3, aluEnv: 1.0, padEnv: 1.0 },
+  black: { base: 0x1c1c1f, rough: 0.42, metal: 0.92, pad: 0x232326, cc: 0.08, aluEnv: 0.6, padEnv: 0.6 }, // space black, the home page's
+}[FINISH];
+// Tuning overrides: base / pad as hex, rough, metal, cc (the trackpad's clearcoat), aluEnv / padEnv (how much the aluminium and trackpad reflect the room)
+for (const k of ["base", "pad"]) if (Q.has(k)) FIN[k] = parseInt(Q.get(k), 16);
+for (const k of ["rough", "metal", "cc", "aluEnv", "padEnv"]) if (Q.has(k)) FIN[k] = +Q.get(k);
+const alu = new THREE.MeshPhysicalMaterial({ color: FIN.base, metalness: FIN.metal, roughness: FIN.rough, envMapIntensity: FIN.aluEnv });
+const keyMat = new THREE.MeshPhysicalMaterial({ color: 0x060607, roughness: 0.55, metalness: 0.0, specularIntensity: 0.35, envMapIntensity: 0.6 });
+const wellMat = new THREE.MeshStandardMaterial({ color: 0x030304, roughness: 0.8, metalness: 0.0, envMapIntensity: 0.15 });
+const glassMat = new THREE.MeshPhysicalMaterial({ color: 0x010102, roughness: 0.12, metalness: 0.0, specularIntensity: 0.25, envMapIntensity: +(Q.get("glass") ?? 0.03) });
+const hingeMat = new THREE.MeshStandardMaterial({ color: 0x0b0b0c, roughness: 0.5, metalness: 0.3, envMapIntensity: 0.25 });
+const padMat = new THREE.MeshPhysicalMaterial({ color: FIN.pad, roughness: 0.32, metalness: 0.7, clearcoat: FIN.cc, clearcoatRoughness: 0.3, envMapIntensity: FIN.padEnv });
+const gapMat = new THREE.MeshBasicMaterial({ color: 0x1a1a1c });
+// Writes alpha 0: the display is cut out of the image so the page's photo shows through
+const punchMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0, blending: THREE.NoBlending, depthWrite: false });
+
+/* ---------- rounded rectangle outline ---------- */
+function rrPoint(w, d, r, s) {
+  // s in [0,1): arc-length parameter round the outline, CCW seen from +y (x right, z toward viewer)
+  const hx = w / 2 - r, hz = d / 2 - r;
+  const segs = [2 * hz, (Math.PI / 2) * r, 2 * hx, (Math.PI / 2) * r, 2 * hz, (Math.PI / 2) * r, 2 * hx, (Math.PI / 2) * r];
+  const total = segs.reduce((a, b) => a + b, 0);
+  let t = s * total;
+  // start at right edge bottom (x=+w/2, z=+hz) going toward -z
+  for (let i = 0; i < 8; i++) {
+    if (t <= segs[i] || i === 7) {
+      const f = segs[i] ? t / segs[i] : 0;
+      switch (i) {
+        case 0: return { p: [w / 2, hz - f * 2 * hz], n: [1, 0] };
+        case 1: { const a = -f * Math.PI / 2; return { p: [hx + r * Math.cos(a), -hz + r * Math.sin(a)], n: [Math.cos(a), Math.sin(a)] }; }
+        case 2: return { p: [hx - f * 2 * hx, -d / 2], n: [0, -1] };
+        case 3: { const a = -Math.PI / 2 - f * Math.PI / 2; return { p: [-hx + r * Math.cos(a), -hz + r * Math.sin(a)], n: [Math.cos(a), Math.sin(a)] }; }
+        case 4: return { p: [-w / 2, -hz + f * 2 * hz], n: [-1, 0] };
+        case 5: { const a = Math.PI - f * Math.PI / 2; return { p: [-hx + r * Math.cos(a), hz + r * Math.sin(a)], n: [Math.cos(a), Math.sin(a)] }; }
+        case 6: return { p: [-hx + f * 2 * hx, d / 2], n: [0, 1] };
+        case 7: { const a = Math.PI / 2 - f * Math.PI / 2; return { p: [hx + r * Math.cos(a), hz + r * Math.sin(a)], n: [Math.cos(a), Math.sin(a)] }; }
+      }
+    }
+    t -= segs[i];
+  }
+}
+
+/**
+ * A slab: rounded rectangle from above, swept with an edge profile [[inset, y], ...]
+ * running from the bottom face's edge up to the top face's edge, both faces filled
+ * with rings so they can be shaped (deform(x, y, z) -> y).
+ */
+function slab(w, d, r, profile, { n = 1400, rings = 56, deform } = {}) {
+  const pos = [], idx = [];
+  const yTop = profile[profile.length - 1][1], yBot = profile[0][1];
+  const insTop = profile[profile.length - 1][0], insBot = profile[0][0];
+  const ringT = []; for (let k = rings; k >= 1; k--) ringT.push(1 - (k / (rings + 1)) ** 2); // inner→outer
+  const col = []; // per column: list of [x,y,z]
+  const outline = [];
+  for (let i = 0; i < n; i++) outline.push(rrPoint(w, d, r, i / n));
+  let colLen = 0;
+  for (let i = 0; i < n; i++) {
+    const { p, n: nn } = outline[i];
+    const c = [];
+    const pb = [p[0] - nn[0] * insBot, p[1] - nn[1] * insBot];
+    for (const t of ringT) c.push([pb[0] * t, yBot, pb[1] * t]); // bottom rings inner→outer
+    for (const [ins, y] of profile) c.push([p[0] - nn[0] * ins, y, p[1] - nn[1] * ins]);
+    const pt = [p[0] - nn[0] * insTop, p[1] - nn[1] * insTop];
+    for (let k = ringT.length - 1; k >= 0; k--) c.push([pt[0] * ringT[k], yTop, pt[1] * ringT[k]]); // top rings outer→inner
+    colLen = c.length;
+    for (const v of c) {
+      let [x, y, z] = v;
+      if (deform) y = deform(x, y, z);
+      pos.push(x, y, z);
+    }
+  }
+  const cb = pos.length / 3; pos.push(0, yBot, 0);
+  const ct = pos.length / 3; pos.push(0, deform ? deform(0, yTop, 0) : yTop, 0);
+  for (let i = 0; i < n; i++) {
+    const a = i * colLen, b = ((i + 1) % n) * colLen;
+    for (let j = 0; j < colLen - 1; j++) {
+      idx.push(a + j, b + j, a + j + 1, b + j, b + j + 1, a + j + 1);
+    }
+    idx.push(cb, a, b); // bottom fan
+    idx.push(ct, b + colLen - 1, a + colLen - 1); // top fan
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+
+function roundProfile(h, rb, rt, segB = 10, segT = 10) {
+  const pr = [];
+  for (let i = 0; i <= segB; i++) { const a = -Math.PI / 2 + (i / segB) * Math.PI / 2; pr.push([rb - rb * Math.cos(a), rb + rb * Math.sin(a)]); }
+  for (let i = 0; i <= segT; i++) { const a = (i / segT) * Math.PI / 2; pr.push([rt - rt * Math.cos(a), h - rt + rt * Math.sin(a)]); }
+  return pr;
+}
+
+/* ---------- scene ---------- */
+const scene = new THREE.Scene();
+const laptop = new THREE.Group();
+scene.add(laptop);
+
+// Base, with the thumb scoop in the middle of its front edge
+const SC_W = 6.3, SC_R = 0.42, SC_DEPTH = 0.4, SC_LEN = 0.95;
+function scoop(x, z) {
+  const dz = D / 2 - z;
+  if (dz > SC_LEN || dz < -0.01) return 0;
+  const a = Math.max(0, Math.abs(x) - (SC_W / 2 - SC_R)) / SC_R;
+  const b = Math.max(0, dz) / SC_LEN;
+  const q = 1 - a * a - b * b;
+  return q > 0 ? SC_DEPTH * Math.sqrt(q) : 0;
+}
+const baseProfile = roundProfile(HB, 0.42, 0.09, 14, 8);
+const baseGeo = slab(W, D, RB_PLAN, baseProfile, {
+  n: 2400, rings: 70,
+  deform: (x, y, z) => {
+    const s = scoop(x, z);
+    if (!s) return y;
+    const k = Math.min(1, Math.max(0, (y - 0.42) / (HB - 0.42)));
+    return y - s * k;
+  },
+});
+const base = new THREE.Mesh(baseGeo, alu);
+laptop.add(base);
+
+// Keyboard
+const U = 1.9, ROW = 1.82, GAP = 0.27, KH = 0.12, KR = 0.05;
+const KB_W = 14.5 * U, KB_ROWS = 6, KB_D = KB_ROWS * ROW;
+const KB_Z0 = -D / 2 + 1.95; // back edge of the key grid
+const rows = [
+  [["esc", 1.5], ...["F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"].map((k) => [k, 12 / 12]), ["", 1.0]],
+  [["`", 1], ["1", 1], ["2", 1], ["3", 1], ["4", 1], ["5", 1], ["6", 1], ["7", 1], ["8", 1], ["9", 1], ["0", 1], ["-", 1], ["=", 1], ["delete", 1.5]],
+  [["tab", 1.5], ...[..."QWERTYUIOP"].map((k) => [k, 1]), ["[", 1], ["]", 1], ["\\", 1]],
+  [["caps lock", 1.75], ...[..."ASDFGHJKL"].map((k) => [k, 1]), [";", 1], ["'", 1], ["return", 1.75]],
+  [["shift", 2.25], ...[..."ZXCVBNM"].map((k) => [k, 1]), [",", 1], [".", 1], ["/", 1], ["shift", 2.25]],
+  [["fn", 1], ["control", 1], ["option", 1], ["command", 1.25], ["", 5], ["command", 1.25], ["option", 1], ["◀", 1, "h"], ["▲▼", 1, "v"], ["▶", 1, "h"]],
+];
+// function row: esc 1.5 + 12 keys + touch id = 14.5
+rows[0] = [["esc", 1.5], ...["F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"].map((k) => [k, 1]), ["", 1.0]];
+
+const keys = new THREE.Group();
+const keyTopY = HB + 0.07;
+const legendCv = document.createElement("canvas");
+const LPX = 160; // legend canvas px per cm
+legendCv.width = Math.round(KB_W * LPX); legendCv.height = Math.round(KB_D * LPX);
+const lg = legendCv.getContext("2d");
+lg.fillStyle = "rgba(232,232,236,0.92)";
+lg.textBaseline = "middle";
+const keyGeoCache = new Map();
+function keyGeo(w, d) {
+  const k = w.toFixed(3) + "x" + d.toFixed(3);
+  if (!keyGeoCache.has(k)) keyGeoCache.set(k, new RoundedBoxGeometry(w, KH, d, 3, KR));
+  return keyGeoCache.get(k);
+}
+function addKey(cx, cz, w, d, label, small) {
+  const m = new THREE.Mesh(keyGeo(w, d), keyMat);
+  m.position.set(cx, keyTopY - KH / 2, cz);
+  m.castShadow = true;
+  keys.add(m);
+  if (!label) return;
+  const px = (cx + KB_W / 2) * LPX, pz = (cz - KB_Z0) * LPX;
+  const wPx = w * LPX, dPx = d * LPX;
+  if (small) {
+    lg.font = `400 ${Math.round(0.19 * LPX)}px -apple-system, "Helvetica Neue", Helvetica, Arial`;
+    lg.textAlign = cx < 0 ? "left" : "right";
+    const x = cx < 0 ? px - wPx / 2 + 0.17 * LPX : px + wPx / 2 - 0.17 * LPX;
+    lg.fillText(label, x, pz + dPx / 2 - 0.24 * LPX);
+  } else {
+    lg.font = `400 ${Math.round((label.length > 1 ? 0.24 : 0.36) * LPX)}px -apple-system, "Helvetica Neue", Helvetica, Arial`;
+    lg.textAlign = "center";
+    lg.fillText(label, px, pz + 0.02 * LPX);
+  }
+}
+rows.forEach((row, r) => {
+  let x = -KB_W / 2;
+  const cz = KB_Z0 + (r + 0.5) * ROW;
+  for (const [label, u, kind] of row) {
+    const w = u * U - GAP;
+    const cx = x + (u * U) / 2;
+    const d = ROW - GAP;
+    const small = label.length > 2 && !/^F\d+$/.test(label);
+    if (kind === "h") {
+      addKey(cx, cz + d / 4 + 0.02, w, d / 2 - 0.04, label === "◀" ? "◀" : "▶", false);
+    } else if (kind === "v") {
+      addKey(cx, cz - d / 4 - 0.02, w, d / 2 - 0.04, "▲", false);
+      addKey(cx, cz + d / 4 + 0.02, w, d / 2 - 0.04, "▼", false);
+    } else if (r === 0 && label === "" ) {
+      // Touch ID: a plain key with a faint ring
+      addKey(cx, cz, w, d, "", false);
+    } else {
+      addKey(cx, cz, w, d, label === "" ? "" : label, small);
+    }
+    x += u * U;
+  }
+});
+laptop.add(keys);
+const legendTex = new THREE.CanvasTexture(legendCv);
+legendTex.colorSpace = THREE.SRGBColorSpace;
+legendTex.anisotropy = 16;
+const legendMat = new THREE.MeshBasicMaterial({ map: legendTex, transparent: true, depthWrite: false, toneMapped: true, opacity: 0.85 });
+const legend = new THREE.Mesh(new THREE.PlaneGeometry(KB_W, KB_D), legendMat);
+legend.rotation.x = -Math.PI / 2;
+legend.position.set(0, keyTopY + 0.003, KB_Z0 + KB_D / 2);
+laptop.add(legend);
+
+function rrShape(w, h, r) {
+  const s = new THREE.Shape();
+  const x = -w / 2, y = -h / 2;
+  s.moveTo(x + r, y); s.lineTo(x + w - r, y); s.absarc(x + w - r, y + r, r, -Math.PI / 2, 0);
+  s.lineTo(x + w, y + h - r); s.absarc(x + w - r, y + h - r, r, 0, Math.PI / 2);
+  s.lineTo(x + r, y + h); s.absarc(x + r, y + h - r, r, Math.PI / 2, Math.PI);
+  s.lineTo(x, y + r); s.absarc(x + r, y + r, r, Math.PI, Math.PI * 1.5);
+  return s;
+}
+function flat(shape, mat, y, cx = 0, cz = 0, seg = 24) {
+  const m = new THREE.Mesh(new THREE.ShapeGeometry(shape, seg), mat);
+  m.rotation.x = -Math.PI / 2;
+  m.position.set(cx, y, cz);
+  return m;
+}
+// The black keyboard well
+const well = flat(rrShape(KB_W + 0.3, KB_D + 0.3, 0.45), wellMat, HB + 0.001, 0, KB_Z0 + KB_D / 2);
+well.receiveShadow = true;
+laptop.add(well);
+
+// Speaker grilles either side of the keys
+function grilleTex() {
+  const cv = document.createElement("canvas");
+  const pitch = 12, cols = 22, rowsN = Math.round(KB_D / (2.4 / cols));
+  cv.width = cols * pitch; cv.height = rowsN * pitch;
+  const c = cv.getContext("2d");
+  c.fillStyle = "#000"; c.fillRect(0, 0, cv.width, cv.height);
+  c.fillStyle = "#fff";
+  for (let i = 0; i < cols; i++) for (let j = 0; j < rowsN; j++) {
+    c.beginPath(); c.arc(i * pitch + pitch / 2, j * pitch + pitch / 2, pitch * 0.27, 0, Math.PI * 2); c.fill();
+  }
+  const t = new THREE.CanvasTexture(cv);
+  t.anisotropy = 16;
+  return t;
+}
+const gTex = grilleTex();
+const grilleMat = new THREE.MeshBasicMaterial({ color: 0x0a0a0b, alphaMap: gTex, transparent: true, depthWrite: false, opacity: +(Q.get("grille") ?? 0.6) });
+for (const sx of [-1, 1]) {
+  const gw = 2.4, gx = sx * (KB_W / 2 + 0.15 + (W / 2 - KB_W / 2 - 0.15) / 2);
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(gw, KB_D), grilleMat);
+  m.rotation.x = -Math.PI / 2;
+  m.position.set(gx, HB + 0.0015, KB_Z0 + KB_D / 2);
+  laptop.add(m);
+}
+
+// Trackpad
+const TP_W = 16.0, TP_D = 9.4, TP_R = 0.75;
+const TP_Z = KB_Z0 + KB_D + 0.95 + TP_D / 2;
+laptop.add(flat(rrShape(TP_W + 0.06, TP_D + 0.06, TP_R + 0.03), gapMat, HB + 0.001, 0, TP_Z));
+laptop.add(flat(rrShape(TP_W, TP_D, TP_R), padMat, HB + 0.002, 0, TP_Z));
+
+// Hinge
+const hinge = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.52, W - 2 * 2.2, 48), hingeMat);
+hinge.rotation.z = Math.PI / 2;
+hinge.position.set(0, HB - 0.05, -D / 2 + 0.55);
+laptop.add(hinge);
+
+/* ---------- lid ---------- */
+// Lid frame: u across, v up along the lid, n out of the glass
+const v = new THREE.Vector3(0, Math.cos(TILT), -Math.sin(TILT));
+const nrm = new THREE.Vector3(0, Math.sin(TILT), Math.cos(TILT));
+const lidOrigin = new THREE.Vector3(0, HB - 0.25, -D / 2 + 1.05); // bottom of the glass face
+const lidMatrix = new THREE.Matrix4().makeBasis(new THREE.Vector3(1, 0, 0), v, nrm).setPosition(lidOrigin);
+
+const lid = new THREE.Group();
+lid.matrixAutoUpdate = false;
+lid.matrix.copy(lidMatrix);
+laptop.add(lid);
+// slab built flat (thickness along y), then turned so y → n (front face at n = 0) and z → -v
+const lidProfile = roundProfile(LT, 0.2, 0.12, 10, 8);
+const lidGeo = slab(W, LH, LR, lidProfile, { n: 1600, rings: 30 });
+// map slab (x, y, z) → lid local (x, zLocal, n): x→x, -z + LH/2 → along v, y - LT → n
+lidGeo.applyMatrix4(new THREE.Matrix4().set(
+  1, 0, 0, 0,
+  0, 0, -1, LH / 2,
+  0, 1, 0, -LT,
+  0, 0, 0, 1,
+));
+lid.add(new THREE.Mesh(lidGeo, alu));
+
+// Black glass
+const glassW = W - 2 * RIM, glassH = LH - 2 * RIM;
+const glass = new THREE.Mesh(new THREE.ShapeGeometry(rrShape(glassW, glassH, LR - RIM), 32), glassMat);
+glass.position.set(0, LH / 2, 0.003);
+lid.add(glass);
+
+// The display outline, with the notch, in lid coords (x across, y up along the lid)
+const dTop = LH - RIM - DISP_TOP, dBot = dTop - DISP_H;
+function displayShape(grow = 0) {
+  const s = new THREE.Shape();
+  const L = -DISP_W / 2 - grow, R = DISP_W / 2 + grow, B = dBot - grow, T = dTop + grow;
+  const nl = -NOTCH_W / 2 + grow, nr = NOTCH_W / 2 - grow, nb = dTop - NOTCH_H + grow;
+  const r = DISP_R, f = NOTCH_F, nR = NOTCH_R;
+  s.moveTo(L, B);
+  s.lineTo(R, B);
+  s.lineTo(R, T - r); s.absarc(R - r, T - r, r, 0, Math.PI / 2);
+  s.lineTo(nr + f, T); s.absarc(nr + f, T - f, f, Math.PI / 2, Math.PI, false);
+  s.lineTo(nr, nb + nR); s.absarc(nr - nR, nb + nR, nR, 0, -Math.PI / 2, true);
+  s.lineTo(nl + nR, nb); s.absarc(nl + nR, nb + nR, nR, -Math.PI / 2, -Math.PI, true);
+  s.lineTo(nl, T - f); s.absarc(nl - f, T - f, f, 0, Math.PI / 2, false);
+  s.lineTo(L + r, T); s.absarc(L + r, T - r, r, Math.PI / 2, Math.PI);
+  s.lineTo(L, B);
+  return s;
+}
+const punch = new THREE.Mesh(new THREE.ShapeGeometry(displayShape(0), 48), punchMat);
+punch.position.z = 0.006;
+punch.renderOrder = 10;
+lid.add(punch);
+
+// Camera in the notch
+const camLens = new THREE.Mesh(new THREE.CircleGeometry(0.075, 40), new THREE.MeshBasicMaterial({ color: 0x0c1322 }));
+camLens.position.set(0, dTop - NOTCH_H / 2 + 0.02, 0.005);
+lid.add(camLens);
+const camRing = new THREE.Mesh(new THREE.RingGeometry(0.075, 0.115, 40), new THREE.MeshBasicMaterial({ color: 0x07080a }));
+camRing.position.copy(camLens.position);
+lid.add(camRing);
+const camGlint = new THREE.Mesh(new THREE.CircleGeometry(0.026, 24), new THREE.MeshBasicMaterial({ color: 0x23365c }));
+camGlint.position.set(-0.018, dTop - NOTCH_H / 2 + 0.038, 0.0055);
+lid.add(camGlint);
+
+// Contact shadow on the floor (a blurred footprint, tinted like the site's shadows)
+const SH_PAD = 3.0; // cm of soft spill round the base's footprint
+function shadowTex() {
+  const PX = 28; // px per cm
+  const cv = document.createElement("canvas");
+  cv.width = Math.round((W + 2 * SH_PAD) * PX); cv.height = Math.round((D + 2 * SH_PAD) * PX);
+  const c = cv.getContext("2d");
+  c.fillStyle = "#000"; c.fillRect(0, 0, cv.width, cv.height);
+  const p = SH_PAD * PX;
+  // a broad soft pool the size of the footprint...
+  c.filter = `blur(${0.9 * PX}px)`;
+  c.fillStyle = "rgba(255,255,255,0.42)";
+  c.beginPath(); c.roundRect(p - 0.3 * PX, p, cv.width - 2 * p + 0.6 * PX, cv.height - 2 * p + 0.9 * PX, (RB_PLAN + 0.6) * PX); c.fill();
+  c.filter = `blur(${0.3 * PX}px)`;
+  c.fillStyle = "rgba(255,255,255,0.6)";
+  c.beginPath(); c.roundRect(p, p, cv.width - 2 * p, cv.height - 2 * p + 0.25 * PX, RB_PLAN * PX); c.fill();
+  // ...and a dark contact line just inside its edge
+  c.filter = `blur(${0.08 * PX}px)`;
+  c.fillStyle = "rgba(255,255,255,1)";
+  const q = p + 0.12 * PX;
+  c.beginPath(); c.roundRect(q, q, cv.width - 2 * q, cv.height - 2 * q, RB_PLAN * PX); c.fill();
+  return new THREE.CanvasTexture(cv);
+}
+const shadow = new THREE.Mesh(new THREE.PlaneGeometry(W + 2 * SH_PAD, D + 2 * SH_PAD), new THREE.MeshBasicMaterial({ color: 0x2a0f14, alphaMap: shadowTex(), transparent: true, opacity: +(Q.get("shadowk") ?? 0.75), depthWrite: false }));
+shadow.rotation.x = -Math.PI / 2;
+shadow.position.set(0, -0.115, 0);
+shadow.renderOrder = -1;
+if (Q.get("shadow") !== "0") laptop.add(shadow);
+laptop.position.y = 0.12; // feet
+
+/* ---------- light ---------- */
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.NeutralToneMapping;
+renderer.toneMappingExposure = +(Q.get("exp") ?? 1.0);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFShadowMap;
+renderer.setClearColor(0x000000, 0);
+const pmrem = new THREE.PMREMGenerator(renderer);
+const envTex = pmrem.fromScene(new RoomEnvironment(), 0.03).texture;
+scene.environment = envTex;
+for (const m of [alu, keyMat, glassMat, padMat, hingeMat, wellMat]) m.envMap = envTex;
+scene.environmentIntensity = +(Q.get("env") ?? 1.0);
+const key = new THREE.DirectionalLight(0xffffff, +(Q.get("key") ?? 1.2));
+key.position.set(-30, 80, 60);
+key.castShadow = true;
+key.shadow.mapSize.set(4096, 4096);
+key.shadow.camera.left = -22; key.shadow.camera.right = 22; key.shadow.camera.top = 22; key.shadow.camera.bottom = -22;
+key.shadow.camera.near = 40; key.shadow.camera.far = 160;
+key.shadow.bias = -0.0002; key.shadow.normalBias = 0.01; key.shadow.radius = 3;
+scene.add(key);
+keys.children.forEach((k) => (k.receiveShadow = true));
+
+/* ---------- camera: on the display's normal, through its centre ---------- */
+lid.updateMatrixWorld(true);
+laptop.updateMatrixWorld(true);
+const dispC = new THREE.Vector3(0, (dTop + dBot) / 2, 0).applyMatrix4(lid.matrixWorld);
+const camPos = dispC.clone().addScaledVector(nrm, DIST);
+const camera = new THREE.PerspectiveCamera(20, 1, DIST - 70, DIST + 70);
+camera.position.copy(camPos);
+camera.up.copy(v);
+camera.lookAt(dispC);
+camera.updateMatrixWorld(true);
+camera.updateProjectionMatrix();
+
+// Frame: project the laptop's points (camera aspect 1, so NDC x and y share a scale)
+// and crop the frame to them with setViewOffset, which keeps the projection itself
+const pts = [];
+laptop.traverse((o) => {
+  if (!o.isMesh) return;
+  const p = o.geometry.attributes.position;
+  const step = Math.max(1, Math.floor(p.count / 4000));
+  for (let i = 0; i < p.count; i += step) pts.push(new THREE.Vector3().fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld).project(camera));
+});
+let x0 = 9, x1 = -9, y0 = 9, y1 = -9;
+for (const p of pts) { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); y0 = Math.min(y0, p.y); y1 = Math.max(y1, p.y); }
+const mx = 0.012 * (x1 - x0);
+x0 -= mx; x1 += mx; y1 += mx; y0 -= mx;
+const FW = FULLW, FH = Math.round(FULLW * (y1 - y0) / (x1 - x0));
+const BW = FW * 2 / (x1 - x0), BH = FH * 2 / (y1 - y0);
+const OX = (x0 + 1) / 2 * BW, OY = (1 - y1) / 2 * BH;
+
+// Display corners and the bottom of the menu strip, in frame pixels
+const toPx = (lx, ly) => { const p = new THREE.Vector3(lx, ly, 0).applyMatrix4(lid.matrixWorld).project(camera); return [((p.x + 1) / 2) * BW - OX, ((1 - p.y) / 2) * BH - OY]; };
+const info = {
+  frame: [FW, FH],
+  dispTL: toPx(-DISP_W / 2, dTop), dispBR: toPx(DISP_W / 2, dBot),
+  stripY: toPx(0, dTop - NOTCH_H)[1],
+  notch: [toPx(-NOTCH_W / 2, dTop), toPx(NOTCH_W / 2, dTop - NOTCH_H)],
+};
+window.__info = info;
+
+function renderRect(x, y, w, h) {
+  renderer.setSize(w, h, false);
+  camera.setViewOffset(BW, BH, OX + x, OY + y, w, h);
+  camera.updateProjectionMatrix();
+  renderer.render(scene, camera);
+  return renderer.domElement.toDataURL("image/png");
+}
+window.__renderTile = (x, y, w, h) => renderRect(x, y, w, h);
+if (PREVIEW) {
+  document.body.appendChild(renderer.domElement);
+  renderRect(0, 0, FW, FH);
+}
+window.__ready = true;
+</script>
+</body>
+</html>
