@@ -1,15 +1,10 @@
 import Link from "next/link";
-import { CONTACT } from "@/lib/data";
+import { CONTACT, navLinks } from "@/lib/data";
 import { Logo } from "./Navbar";
 import { SocialIcons } from "./SocialIcons";
 
-const footerLinks = [
-  { href: "/", label: "Home" },
-  { href: "/services", label: "Services" },
-  { href: "/#process", label: "Process" },
-  { href: "/#faq", label: "FAQ" },
-  { href: "/contact", label: "Contact Us" },
-];
+// The same pages as the site menu (navLinks), so the two never drift apart
+const footerLinks = [...navLinks, { href: "/contact", label: "Contact Us" }];
 
 /* `bleed` (contact page): the taupe page bleeds down into the burgundy footer */
 export function Footer({ bleed = false }: { bleed?: boolean }) {
